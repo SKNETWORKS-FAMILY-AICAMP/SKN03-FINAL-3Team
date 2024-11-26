@@ -10,15 +10,15 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # Nginx
-COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY ./mega/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Django server
 RUN mkdir /app
-COPY . /app
+COPY ./mega /app
 WORKDIR /app
 
 # 환경변수 적용 
 # config/settings.py 안에 SECRET_KEY 확인하고 삽입
-COPY ./run.sh .
+COPY ./mega/run.sh /run.sh
 RUN chmod +x run.sh
 CMD ["./run.sh"]
