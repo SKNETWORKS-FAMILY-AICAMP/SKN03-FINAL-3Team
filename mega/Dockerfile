@@ -6,7 +6,7 @@ COPY --from=python-build /usr/local/lib/python3.12/site-packages /usr/local/lib/
 RUN apt-get update && apt-get install -y libmariadb3 nginx
 
 # 파이썬 모듈 설치 
-COPY requirements.txt requirements.txt
+COPY ./mega/requirements.txt /requirements.txt
 RUN pip install -r requirements.txt
 
 # Nginx
