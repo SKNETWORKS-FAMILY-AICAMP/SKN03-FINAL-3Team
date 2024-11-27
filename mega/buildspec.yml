@@ -4,7 +4,7 @@ env:
   variables:
     # docker 파라미터 정의
     # ECS_CONTAINER_NAME: ecs-mw-container
-    ECS_CONTAINER_NAME: ecs-mega-container
+    ECS_CONTAINER_NAME: mega-container
     IMAGE_REPO_NAME: ecs-mega-ecr # aws ecr에 등록이 되어 있는 name
     IMAGE_TAG: latest
     AWS_DEFAULT_REGION: ap-northeast-2
