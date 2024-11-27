@@ -16,7 +16,8 @@ import boto3
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # AWS SSM 클라이언트 생성
-ssm = boto3.client('ssm')
+AWS_REGION = 'ap-northeast-2' 
+ssm = boto3.client('ssm', region_name=AWS_REGION)
 
 def get_parameter(name, with_decryption=True):
     return ssm.get_parameter(Name=name, WithDecryption=with_decryption)['Parameter']['Value']
