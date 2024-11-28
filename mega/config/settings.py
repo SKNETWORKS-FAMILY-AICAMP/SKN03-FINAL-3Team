@@ -11,21 +11,26 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-import boto3 
+
+import boto3
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 # AWS SSM 클라이언트 생성
-AWS_REGION = 'ap-northeast-2' 
-ssm = boto3.client('ssm', region_name=AWS_REGION)
+ssm = boto3.client('ssm', region_name='ap-northeast-2')
 
 def get_parameter(name, with_decryption=True):
+    """AWS Parameter Store에서 값을 가져오는 함수"""
     return ssm.get_parameter(Name=name, WithDecryption=with_decryption)['Parameter']['Value']
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = get_parameter('/mega/SECRET_KEY')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_parameter('/mega/SCRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
