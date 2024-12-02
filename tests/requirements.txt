@@ -1,0 +1,7 @@
+django
+slack-bolt
+slack-sdk
+python-dotenv
+openai
+PyPDF2
+pdfminer.six
