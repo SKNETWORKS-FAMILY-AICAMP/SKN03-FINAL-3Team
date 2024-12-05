@@ -1,0 +1,398 @@
+Title: link.springer.com.pdf
+Applied Intelligence (2023) 53:10789–10799https://doi.org/10.1007/s10489-022-04063-5
+especially positive (i.e., spam) samplings. On one hand, writing styles greatly differ among people and seman-tic comprehension is still challenging; on the other hand, review spammers always adopt various camouflages for review manipulation. Inexactness denotes the recent case that user’s sentiments across multiple aspects or modali-ties are challenging to comprehend, and probability-based models always arrive at biased judgements. Inaccuracy means that samplings inevitably have mislabeled examples. The other challenge, camouflage expose highlights the dif-ficulty in cracking spammer’s elaborately fabricated decep-tive experiences. In fact, it is challenging even for domain experts. Take the following two aspect-oriented reviews for example, given the prior knowledge that only one is genu-ine. It turns out that people can hardly identify the spam out of them⁎. One can refer to the footnote for the answer.⁎ Review A: The appearance is very good. I like the color, too. The photo effect is OK. The running speed was OK. There is still some noise in the voice, but it’s already better than others. It’s worth buying for students.1 IntroductionDriven by profit, deceptive opinions, also known as review spams, abound in almost every e-business platform and opinion sharing community. Technically, they can be shilling attacks towards reputations of their own merchan-dises as well as items out of their allies, or bad-mouthing manipulations targeting at fames of their opponents’ com-modities [1, 2]. Because of their destruction, product repu-tations are untrustworthy, causing both bad decisions for consumers and financial loss for producers. Ever since the pioneer work contributed by Ott and Liu [3], the field of review spam detection has been suffering from two key chal-lenges, i.e., weak supervision and camouflage expose.The weak supervision problem talks about review sampling, and it is threefold, including incompleteness, inexactness and inaccuracy (See Fig. 1). Incompleteness means samplings are difficult to cover most spaces in review distribution,  Jiandun Lilijd@sdju.edu.cn1 School of Electronic and Information Engineering, Shanghai Dianji University, 201306 Shanghai, ChinaAbstractUntruthful opinions, ballot-stuffing or bad-mouthing online commodities, are challenging to identify because of two prominent obstacles, i.e., lack of ground-truth annotations and cracking deceptive sentiment along review contexts. To rise to these challenges, inspired by a recent algorithm called Learning with Label Noise, we first recruit volunteers to write annotated reviews and then label more unannotated public reviews with a neighborhood graph. Furthermore, based on statistical analysis, we introduce a Sentiment-Distribution-Oriented Clustering (SDOC) method to ferret review spam out, in which product usage aspects and their sentiment polarities are highlighted. Evaluations and comparisons with several state-of-the-art approaches indicate that SDOC is effective and outperforms them with statistical significance. We have also arrived at an interesting conclusion, i.e., genuine reviewers’ feelings tend to fluctuate across different product aspects, whereas spammers always have uniform sentiments along aspects.Keywords Review spam · Untruthful opinion · Sentiment distribution · Weakly supervised learning · Learning with label noiseAccepted: 2 August 2022 / Published online: 25 August 2022© The Author(s), under exclusive licence to Springer Science+Business Media, LLC, part of Springer Nature 2022Shooting review spam with a weakly supervised approach and a sentiment-distribution-oriented methodJiandun!Li1!· Liu!Yang1!· Pengpeng!Zhang1
+1 3J. Li et al.
+1Review B: The appearance is so amazing. The photo effect is better than Apple’s, and the price is very good. It’s fast, it doesn’t get stuck. The standby is superior to similar products. The magic laughter of the stereo video is very real.For the former challenge, state-of-the-art studies have applied crowdsourcing workers, human judges, commercial websites and Generative Adversarial Networks (GAN) to write, label, filter and generate annotated reviews; for the latter, linguistic attributes, behavior features and metadata have been introduced by previous researchers. However, these two challenges are still far from being conquered. Their shortcomings are depicted in Fig. 1. Inspired by the algorithm of Learning with Label Noise, in this paper, we propose a hybrid semi-supervised technique to expand the annotated review set and introduce a sentiment-distribution-oriented clustering (SDOC) method to identify review spam. The contribution of this paper is threefold: (1) we introduce a semi-supervised method to tackle the weak supervision problem based on Learning with Label Noise; (2) a dataset of annotated reviews is collected and released; and (3) we also propose an unsupervised approach SDOC to expose deceptive reviews with considerable performance.The rest of the paper is organized as follows. We explore and discuss recent related work in Section 2, handle the weak supervision problem in Section 3 and propose the unsupervised approach SDOC to uncover review spam in Section 4. In Section 5, we validate our solution and com-pare it with several state-of-the-art solutions, and we con-clude this paper in Section 6.1 ⁎ Review B is spam.2 Related workIn this section, we survey some recent studies related the above two prominent challenges, i.e., the weak supervision problem and the identification of disguised sentiment.2.1 To manage the weak supervision problemFor decades, targeting at the weak supervision problem, researchers have come up with multiple solutions includ-ing sampling from crowdsourcing workers, generating from software and applying filtering results of commercial e-business websites.Sampling from crowdsourcing workers. Through recruit-ing Amazon Mechanical Turk, Ott et al. [4] collected and published a dataset of 800 reviews as respect to 20 hotels in Chicago, which is widely acknowledged as the gold standard dataset for this field. Furthermore, Li et al. [5] enriched this dataset including real-world genuine reviews and deceptive reviews written by filed experts, especially reviews on res-taurants and hospitals. Oh et al. [6] requested 887 people to write deceptive and truthful opinions on randomly picked social issues. To make them sound authentic, short texts, i.e., less than 150 Korean characters, are excluded. There are also commercial datasets owned by Expedia, Hotels.com, Orbitz or Priceline. However, subsequent researches showed that crowdsourcing workers fail to represent online spammers, and some classifiers trained by these standard reviews could only achieve the accuracy of 52 ~ 54%. The reason behind this deficiency is still the incompleteness problem.Filtering results of commercial websites. Business-to-customer websites or opinion sharing communities often have their own anti-spam models, like Amazon, Yelp, 
+Fig. 1 The weak supervision problem of review spam detection 
+1 310790Shooting review spam with a weakly supervised approach and a sentiment-distribution-oriented methodDianping, Meituan, Ele [7]. These commercial systems achieve high performance because of their affordable access to user’s complete registered profiles. However, not only untruthful opinions, but also reviews with shallow experi-ences are evicted; therefore, these models cannot be applied directly to review spam detection.Labeling reviews by human experts. Confronting the absence of ground-truth annotations, multiple researches have trained and validated their models using human judges, filed experts or just their working colleagues [8, 9]. Nevertheless, considering the camouflage, most of them are biased and unreliable; according to the Truth Bias in psy-chology and our previous study [1], people tend to over-trust anything.Generating from software. Recently, GAN (Generative Adversarial Networks) has been introduced to this filed [10, 11]. Generally, with an annotated review input and random noise, researchers utilized the generators to automatically compose a spam, and then applied the discriminators to evaluate its quality. This attempt alleviates the incomplete-ness problem; however, since its unsupervised nature, the noise is difficult to customize to cover the specialty of review distribution.Based on the analysis above, we can conclude that exist-ing solutions have provided several solutions to this field, however, the weak supervision problem of annotated data-sets still hindering us from understanding manipulation patterns and uncovering review shills. Inspired by recent progress in weakly supervised learning, we endeavor to col-lect some first-hand reviews from volunteers, and further label more public unannotated reviews through comparison.2.2 To expose review spam2.2.1 Reviews as free textsTraditionally, a post of review texts is deemed as a sentiment atom towards the product. Because spammers have less product contacts, they always struggle to mimic actual expe-riences. To identify these deceptive sentiments, a lot of fea-tures have been introduced by existing studies to track them; wherein, duplication is widely adopted, which can obtain a great proportion of crowdsourcing or grouped spammers [3, 7]. Besides, researchers have introduced plenty of lexi-cal features, e.g., the ratios of superlatives, exclamations, capitalizations, nouns, adjectives, prepositions, determin-ers and coordinated conjunctions, as indicators of the lack of using experience. Moreover, other researchers argued that the average number of syllables per word could also be utilized as an attribute [12]. Aggressively, Mukherjee [7] applied review length to evaluate a review’s truthfulness. Also, Li et al. [1] stated that longer texts with less diversity or complexity might be spam attacks. However, these stud-ies are biased and controversial; based on them, we cannot discriminate spam from the majority of innocent reviews, which are posted to make platform credits with naïve words and trivial phrases. Besides, an existing study found that family members or relatives are often talked about by spam-mers to as a disguise to conceal their shortage of experi-ence [13]; however, this argument is also biased, because innocent reviewers might actually have bought the product for their relatives or friends. Wang et al. [14] argued that a review addressing multiple uncorrelated aspects is sus-picious; however, this hypothesis is incapable of covering another spamming case where the review is independent of any domains. Recently, Asghar et al. [15] highlighted a bunch of text features, such as positive words, negative words, numeric, capital words, brand names, review length, and trained corresponding weights for these features to calculate the spamicity score. To sum up, except for dupli-cation, these lexical facts are less dependable and cannot generate to recent scenarios, where user’s feelings fluctuate along different aspects of the product. Based on these attri-butes, many Machine Learning models has been adopted, including Support Vector Machine, Naïve Bayes, Random Forest, etc. [16].Recent years, several deep neural network models have also been introduced to this field [17, 18]. Through Ama-zon’s reviews, Hajek et al. [19] completed the feature engi-neering through n-gram, word embedding and 30 sentiment attributes, and the models were deep feedforward network and Convolutional Neural Network (CNN). A similar model proposed by Ren et al. [20] trained a Gated Recurrent Neural Network (GRU), where Continuous Bag-of-Words (CBOW) was highlighted for vectorizing. Concentrating on Chinese reviews, Zhang et al. [21] portrayed a charac-ter from three sides, i.e., single character, pinyin, and pin-yin vector, and made good use of CNN for classification. Recently, by embedding high-dimensional unigram-based word vectors into self-organizing graphs, Neisari et al. [17] transformed the review spam recognition problem into an image classification problem. Besides these deep mod-els, attention techniques have also been adopted [22–24]. Remarkablly, Aghakhani et al. [25] introduced a revised GAN with duplex discriminators to ease the mod collapse problem in learning diverse distributions of truthful and spammed reviews. Together with Reinforcement Learning and Monte Carlo algorithm, the proposed semi-supervised model achieved great performance using TripAdvisor’s review data. Instead of applying GAN as a review generator, Venkateswarlu et al. [26] also adopted it as a spam discrimi-nator aided by other algorithms. In one word, these deep models contributed brilliant ideas to this field; nevertheless, compared to shallow models, deep neural networks heavily 1 310791J. Li et al.3 Expanding the review datasetTo overcome the weak supervision problem, we propose a novel method by adapting existing algorithms (check Fig. 2 for the procedure). As respect to two cell phones, i.e., Huawei P30 and iPhone 11, we recruit volunteers to compose aspect-oriented reviews, including both authentic and deceptive ones via Wenjuan.com. Sentiments across six topics are collected (p = 6), e.g., appearance, camera, speed, battery, sound and others. Because of volunteer’s devotion, we have collected a Chinese review set for each phone which have 2000 texts uniformly distributed across two dimensions, i.e., authentic/deceptive, positive/nega-tive. One can access and make good use of this dataset via Github (https://github.com/smellydog521/chinese-review). Inspired by the Learning with Label Noise algorithm [34], we build a neighborhood graph to alleviate the weak super-vision problem, which is comprised of four steps: selecting features, training the graph, identifying suspects and revers-ing them. After training, we input untagged texts and arrive at an expanded dataset of annotated reviews.3.1 Building a supervised neighborhood graph3.1.1 Selecting featuresIn order to vectorize an aspect-oriented review, we highlight the distribution of sentiment variations along six aspects, from which we can abstract the problem space as Rp = R6. To quantify sentiment variations, we track the fluctuation of user’s attitude within every aspect and across different aspects (see Algorithm I for detail).Algorithm I: feature selectinginput: aspect_oriented_texts, adversative_conjunctions,stopwords, positive_words, negative_words01 foraspect, text in aspect_oriented_texts:02 Cut text into tokens03 iftokens intersect with adversative_conjunctions:04 variation [aspect] = 105 end if06 Remove any tokens intersecting with stopwords and update tokens07 Set positive_count = number of tokens that intersect-ing with positive_words08 Set negative_count = number of tokens that intersect-ing with negative_words09 ifnegative_count ! positive_count:10 polarity [aspect] = 011 else:12 polarity [aspect] = 113 end if14 ifvariation [aspect] = 0 and negative_count×posi-tive_count != 0:15 variation [aspect] = 116 end if17 end for18 returnpolarity, variationrely on much more annotated reviews, which cannot be met because of the weak supervision problem.2.2.2 Attributes for reviews as aspect-oriented textsNowadays, supported by platform’s nominated review top-ics, such as appearance, camera, battery, speed to a cell phone, consumer’s reviews always have multiple aspects, explicitly or implicitly. For implicit ones, at least two steps are necessary to comprehend its sentiment, i.e., aspect dis-covery and sentiment measurement [27].For aspect nominating, unsupervised approaches, e.g., LDA and its variants, seem more reliable and efficient than word frequency or grammar-based solutions. Li et al. [28] first introduced Latent Dirichlet Allocation (LDA) algo-rithm to this field. They argued that it is effective in telling the composing difference between truthful and untruthful reviews. Also using LDA, Lee et al. [29] exploited five top-ics based on part of speech to label shams. Overall, for latent topic-oriented long texts, these techniques are effective in labeling suspect reviews fabricated by professional spam-mers; yet, for recently nominated topics, they often give redundant results with time-consuming effort.To measure the sentiment following an aspect, word-based methods use synonyms, antonyms or WordNet to evaluate each word’s polarity and then apply an accumula-tive technique to output the final tag [30]. Its drawback is obvious where it cannot effectively manage the polysemy problem and contradict feelings. Recently, pretrained mod-els have been borrowed to this field, such as Word2Vec, Bidirectional Encoder Representation from Transform-ers (BERT), Long Short-Term Memory network (LSTM), Recurrent Neural Network (RNN), Memory Network [31]. Nevertheless, since these models highly rely on data quan-tity, they achieved limited performance because of the weak supervision problem.Recently, Xue et al. [32] abstracted four topics and then utilized Word2Vec to quantifying the difference between topics. They adopted sentiment’s deviation over the aver-age as the punishment and further broadcasted it into a “reviewer-review-sentiment” network to find more spam-mers. You et al. [30]applied lexical analysis to locate “aspect-sentiment” pairs and labeled untruthful reviews by distribution density. Our previous work [33] used dictionar-ies to recognize any latent aspects and their corresponding attitudes, and then took a clustering method together with the top two metrics, duplication and burstiness, to unveil spammer groups. Inspired by these studies, this paper first expands the review set, and then highlights the sentiment distribution as the key attribute to identify review spams.1 310792Shooting review spam with a weakly supervised approach and a sentiment-distribution-oriented method
+3.1.2 Training a neighborhood graphIn this section, aided by annotated reviews, we construct a geometrical neighborhood graph to label more unannotated reviews inspired by Learning with Label Noise [34]. First, let’s give the formal description of this graph.Deﬁnition 1 (joint neighborhood): Assume u and v are two reviews in the real space R12. Their joint neighborhood is defined as two hyper spheres’ intersection, which take their Euclidian distance as the radius, u and v as centers respectively.Deﬁnition 2 (neighborhood graph): Assume V is the review set in a real space R12 and the edge set E is composed of multiple review pairs (u, v). Reviews u and v are correlated if there is no review in their joint neighborhood, where their Euclidian distance serves as the weight. With V and E, we obtain a neighborhood graph G (V, E).For a given review, it can be labeled as genuine or spam; therefore, edges in E can be categorized into two clusters, i.e., edges with uniformed or distinct annotations.In Algorithm I, with the aspect-oriented texts, an adver-sative conjunction list, a stop word list, a positive word list and a negative word list as the input, reviews as multiple pairs of aspects and sentiments are parsed over a loop (line 1–17). For a review text, first we cut it into tokens (line 2). If any adversative words (e.g., “but”, “however” in Chi-nese) were found, the inner variation of the current aspect is deemed as positive (line 3–5). Then, we remove trivial words by referring to the list of stop words (line 6). Fur-thermore, we evaluate the sentiment polarity through two intersection operations (line 7–8), and the greater polarity is taken as this consumer’s overall feeling (line 9–13) con-sidering that people’s average sentiment is always positive. Wherein two libraries of words together with their polarities, i.e., positive_words and negative_words are constructed by adapting existing studies [35]. Moreover, the variation for the current aspect is updated in line 14–16. It is inspired by the intuition that if an aspect-oriented review has both positive and negative words, its sentiment variation can’t be overlooked. Finally, the vector with variation and polarity indices is returned from this algorithm (line 18). In this way, each aspect-oriented review is embedded into a 12-dimen-sion vector with six polarities and six variations. Putting the six polarities together, we obtain the inter variation of this review.
+Fig. 2 Expanding the dataset 
+1 310793J. Li et al.
+and classify them into three categories by two thresholds θ1 and θ2, secure, suspect and insecure. To traversal the entire graph, we apply the breadth-first-search algorithm to inspect the cut edge weight one by one.3.1.4 Reversing and removingFor insecure instances, we reverse their annotations. For a suspect instance (See Fig. 3), we reverse its label accord-ing to the flag of its most secure neighbors based on the majority vote decision; if there are no secure neighbors, we remove it from the graph.3.1.5 Validation and improvementWe use F to validate this neighborhood graph. Five-fold cross validation is adopted along with many metrics includ-ing the confusion matrix, F1 and AUC (Area Under Curve). From these performances, we improve our settings on θ1 = 0.1 and θ2 = 0.9.3.1.6 Time complexityThe most time-consuming phase of the instance expanding model is suspect recognition, which traversals across the entire graph and analyze every node’s correlating edges. In another word, each edge is considered twice, so the time complexity is O(||V||·||E||).Deﬁnition 3 (cut edge): Given an edge in E, we call it a cut edge if and only if labels out of its two nodes differ.By breaking cut edges, we obtain subgraphs with all reviews labeled with the same annotation. Note that, there can be two or more subgraphs.3.1.3 Identifying suspect reviews using cut edge weightCut edges bridge genuine reviews and spams together. From another viewpoint, we can label, validate a node’s annota-tion or identify suspects via cut edges. Specifically, in order to identify suspect reviews, we choose to compute its cut edge weight and compare it to a threshold. Given a review node u and its annotation y(u); it is considered as legitimate when the proportion of cut edges is significantly less than 1-p(y(u)), where p(y(u)) is the proportion of y(u) in the dataset.According to the null hypothesis that every review is independently written, the accumulative cut edge weight of review u can be evaluated by W=/summationtextnuv=1wuvIuv, where nu represents the total number of u’s neighbors, v denotes one of its neighbors, wuv stands for the distance, Iuv is the probability that u and v have distinct annotations with the expectation as 1-p(y(u)). Therefore, the expectation of W is (1−p(y(u)))/summationtextnuv=1wuv.In this paper, we randomly pick 20% reviews (according to Muhlenbach [34], referred as review set F) and switch their labels as F’. Based on the null hypothesis, we conduct a unilateral z-test and arrive at several p-values. Then we rank all reviews in the dataset according to their p-values 
+Fig. 3 Suspect instances. (S: suspect; √: truthful; !: untruthful; no sign: any review) 
+1 310794Shooting review spam with a weakly supervised approach and a sentiment-distribution-oriented method
+neighborhood graph. After fitting, we have removed suspect instances, save secure ones and tag insecure ones as spam. 3.2 Tagging more unannotated reviewsFacing the weak supervision problem of annotated reviews, in this section, we first crawl 5 million public reviews (unannotated) from the top two most influential e-business websites in China, i.e., JD.com and TMALL.com, with two products (Huawei P30 and iPhone 11) centered. According to existing statistics, at least 2/3 of these public reviews can be trusted [1]; therefore, we tag them all with trustful opin-ions initially. Then, these reviews are mapped into the real space R12 and further merged into the previously constructed 
+Fig. 4 Sentiment distribution Table 1 Model settingsModelSettingsNBprobability density: GaussianRFcriterion: Gini impuritySVMkernel: RBF; gamma: scaleDBAsimilarity: Cosine distanceBi-LSTMlayers: 2; hidden layer size: 128; dropout: 0.5; activation: Log Softmax
+1 310795J. Li et al.
+Algorithm II: identifying spaminput: polarity, variation01 if any element of variation equals 1:02     return “spam”03 end if04 if/producttext5i=0polarity[i]=0 and /summationtext5i=0polarity[i]>0:05     return “spam”06 end if07 return “truthful”5 Evaluation and discussionWe conduct some experiments to validate our approach using Python v3.6.4 along with several packages such as os, re, numpy, pandas, matlibplot and sklearn. We apply jieba to cut Chinese texts into tokens. The list of stop words is adapted from previous studies, such as Harbin Institute of Technology, Sichuan University and Baidu.com. Sentiment polarity is evaluated using three dictionaries supported by HowNet and Tsinghua University.Considering the state-of-the-art of review spam recogni-tion, we enumerate five recent used models for performance comparison, including four supervised models, i.e., Naïve Bayes (NB), Random Forest (RF), Support Vector Machine (SVM) and Bidirectional Long Short-Term Memory net-work (Bi-LSTM), and an unsupervised model Duplica-tion-Based Algorithm (DBA). For shallow models, we use TF-IDF to vectorize reviews. As respect to Bi-LSTM, a pre-trained Word2Vec model is adopted for embedding. Detailed settings and configurations for these models can be found in Table 1. After 10-fold cross-validation, their performances are depicted and compared in Tables 2 and 3; Figs. 5 and 6.From these tables and figures, we can observe the per-formance rank sequence as NB < RF/SVM < DBA/Bi-LSTM < SDOC, where SVM and RF, as well as DBA and Bi-LSTM are neck to neck across multiple metrics, e.g., accuracy, precision, recall, F1 score, Brier score and AUC in 95% Confident Interval (CI). NB is inefficient mostly due to its conditional independence assumption that high dimensional token-oriented features are independent; yet, these tokens of Chinese words or phrases are correlated, not to mention aspect-sentiment pairs. Considering the con-siderable performance in labeling email spam, it has been To further improve the performance of spam recognition, we balance truthful reviews and untruthful reviews as 100, 000 instances.4 The SDOC approach4.1 Exploratory data analysisAs respect to the expanded annotated dataset, we perform some statistical analyses (see Fig. 4 where “flat” represents unified sentiments without fluctuation). The result shows that innocent and spammed reviews differ a lot on sentiment distributions, no matter within commodity aspects (inner-aspect) or along them (inter-aspect). We take a hypothesis testing to verify this statistic. Since the review dimension of either subcategory is greater than 30, we assume it follows a Gaussian distribution and take the z-test. It turns out that the p-value is less than 0.05, so we argue that sentiment fluctua-tion can be adopted as an attribute in telling review spam.4.2 Identifying review spam using inner- and inter-variationBased on the statistical result, we propose a Sentiment-Dis-tribution-Oriented Clustering (SDOC) approach to expose spammed reviews, in which only inner- and inter-variation attributes are adopted. The detailed pseudocode to discrimi-nate whether a given review is spam is described in Algo-rithm II. First, we input the 12-dimentional vector of the review. If any sentiment fluctuation is recognized across aspect-oriented texts, the entire review is deemed as spam (line 1–3). Besides, this review cannot be accepted as inno-cent if there is deviation across sentiment polarities (line 4–6). If the review passes both examinations, we label it as an honest review (line 7). Because this algorithm only scans the review once, the time complexity is linear.Table 2 Performances and comparisonsaccuracyprecisionrecallF1 scoreBrier scoreAUC in 95% CINB0.680.690.650.680.320.68 ± 0.04RF0.810.820.780.810.190.81 ± 0.03SVM0.820.780.880.820.180.82 ± 0.03DBA0.840.810.880.830.160.84 ± 0.03Bi-LSTM0.850.860.840.850.150.85 ± 0.03SDOC0.870.800.970.880.130.87 ± 0.03
+Table 3 The confusion matrix of SDOCPredicted-positivePredicted-negativeActual-positive9725275Actual-negative241475861 310796Shooting review spam with a weakly supervised approach and a sentiment-distribution-oriented methodeffective to explore the difference between innocent reviews and spammed reviews beneath Chinese languages.By examining text duplication between posts, DBA have found most review spams. It echoes our previous studies on plagiarism-dominated manipulations [33, 36]. However, this approach falls short to unveil more spams because aspect-related traits are omitted. Bi-LSTM is pervasively applied in multiple text comprehension tasks. In this paper, for its capability in handling longer correlations between tokens, it achieves a better performance. However, since only token-level features are utilized, LSTM is also misled by the camouflages elaborately fabricated by professional spammers which are challenging to pick out from truthful experiences even for human judges.By making good use of aspect-oriented reviews, espe-cially sentiment fluctuations along aspects, the unsuper-vised method SDOC surpasses the other four models with significant margins. Instead of rushing into the fog of sin-cere sentiments accompanied by fake recommendations, it comprehends sentiment polarities and their distributions within/along aspects. In another word, SDOC avoids the challenge of truthfulness evaluation; meanwhile, it embeds token-wise higher dimensions to a lower dimension space, so the computing efficiency is greatly improved. As respect to the mislabeled examples tagged by SDOC (See Table 3), the number of false positive (2414) is much bigger than the number of false negative (275). This observation can also be found in Fig. 6, where SDOC’s true positive rate verified again that review spam cannot be simply managed by existing solutions in other spam recognition fields, such as email spam or web spam [1]. Upon its widely adoption in text mining tasks, here we can see that NB fails to expose spammers’ deceptive feelings. The decision tree model has the same problem, which affects the performance of RF’s independent classifiers, although RF can further improve their efficiencies by ensemble. SVM is less efficient because selecting an appropriate kernel function is always a chal-lenging job. Using the Sklearn module, we have selected different kernels, such as linear kernel, polynomial ker-nel, Radial Basis Function (RBF) and sigmoid kernel, and it manifests that all their performances are limited. These results above also verify the fact that generic shallow mod-els aided by the bag-of-word vectorizing technique are less 
+Fig. 6 Comparisons on ROC/AUC 
+Fig. 5 Comparisons on accuracy and F1 
+1 310797J. Li et al.
+often have fluctuating feelings about commodities; whereas spammers’ sentiments are always biased and unified along different aspects.A limitation of SDOC is that most of the time it could only works on review sets of long texts (with explicit/implicit review aspects), so short (trivial) spams are out of reach. For them, extra attributes other than texts, such as user’s footprints, posting burstiness, the item’s reputation curve, would help. For the future, we plan to follow the lat-est trend on product reviews and extend SDOC to a multi-modal scenario, including texts, photos and clips.Acknowledgements This work was supported in part by the National Nature Science Foundation of China, under grant 61801285 and 61802247. We thank Kun Huang, Jingwen Lin, Yingsheng Wang and other anonymous volunteers for writing product reviews. We also appreciate anonymous reviewers for their constructive comments.References1. Li J, Wang X, Yang L, Zhang P, Yang D (2020) Identifying ground truth in opinion spam: an empirical survey based on review psy-chology. Appl Intell 50(11):3554–35692. Vidanagama DU, Silva TP, Karunananda AS (2019) Decep-tive consumer review detection: a survey.Artificial Intelligence Review, :1–303. Jindal N, Liu BO, Spam (2008) and Analysis. Proceedings of the International Conference on Web Search and Web Data Mining (WSDM 2008), of Conference, ACM Press, 219–2304. Ott M, Choi Y, Cardie C, Hancock JT (2011) Finding Deceptive Opinion Spam by Any Stretch of the Imagination. Proceedings of the the 49th annual meeting of the association for computational linguistics: Human language technologies (volume 1), Associa-tion for Computational Linguistics, 309–3195. Liu Y, Pang B (2018) A unified framework for detecting author spamicity by modeling review deviation. Expert Syst Appl 112:148–155moves faster than the false positive rate. The success on true positive rate verifies that spammed reviews hardly fluctuate along review aspects; whereas the deficit on false positive rate is primarily because the fact that some genuine review-ers also have a unique sentiment within/across aspects, which is quite similar to spammers’ behavior. A key dif-ference between them is that truthful reviewers are chas-ing platform dollars, but spammers are after manipulation rewards. This phenomenon echoes the fact that frauds often attach great importance to manipulation efficiency [1].After fitting, we take Sklearn.CalibrationDisplay to visualize calibrated probalities of these trained models. As illustrated in Fig. 7, we observe that most models ouput fine calibrated predictions with limited biases except NB. NB fails to be well calibrated and accumulates probabilites around 0 and 1, which is due to its aggressive assumption on attribute independence. This figure validates that we can trust the predicted results of SVM, RF, DBA, Bi-LSTM and SDOC and apply these models in real review spam dection scenarios with confidence.6 ConclusionThe weak supervision problem has held back the field of review spam recognition for years. In this paper, by adapt-ing the Learning with Label Noise algorithm, we expand the supervised dataset. Through this dataset, we propose a Sentiment-Distribution-Oriented Clustering (SDOC) solu-tion to expose review spam. Performance comparisons with state-of-the-art models manifest that this method could avoid being fooled by most expert spammers and achieves a better performance. Based on experiment results, we argue that sentiment variance is effective and robust in recogniz-ing review spam. Our conclusion is that innocent consumers 
+Fig. 7 Calibration curves 
+1 310798Shooting review spam with a weakly supervised approach and a sentiment-distribution-oriented method23. Bhuvaneshwari P, Rao AN, Robinson YH (2021) Spam review detection using self attention based CNN and bi-directional LSTM. Multimedia Tools and Applications 80(12):18107–1812424. Gao Y, Gong M, Xie Y, Qin AK (2021) An Attention-Based Unsu-pervised Adversarial Model for Movie Review Spam Detection. IEEE Trans Multimedia 23:784–79625. Aghakhani H, Machiry A, Nilizadeh S, Kruegel C, Vigna G (2018) Detecting Deceptive Reviews Using Generative Adver-sarial Networks. Proceedings of the IEEE Security and Privacy Workshops (SPW), 2018, IEEE Computer Society, 89–9526. Venkateswarlu B, Shenoi V (2021) Optimized generative adver-sarial network with fractional calculus based feature fusion using Twitter stream for spam detection.27. Schouten K, Frasincar F (2016) Survey on Aspect-Level Senti-ment Analysis. Knowl Data Eng IEEE Trans on 28(3):813–83028. Jiwei Li CC (2013) Sujian Li. Topicspam: a topic-model based approach for spam detection. Proceedings of the the 51st Annual Meeting of the Association for Computational Linguistics (ACL 2013), Sofia, Bulgaria, 217–22129. Lee KD, Han K, Myaeng S-H (2016) 2016 of Conference, Nimes, France, 1–730. You L, Peng Q, Xiong Z, He D, Qiu M, Zhang X (2020) Inte-grating aspect analysis and local outlier factor for intelligent review spam detection. Future Generation Computer Systems 102:163–17231. Zhou J, Huang JX, Chen Q, Hu QV, Wang T, He L (2019) Deep Learning for Aspect-Level Sentiment Classification: Survey, Vision, and Challenges. IEEE Access 7:78454–7848332. Xue H, Wang Q, Luo B, Seo H, Li F (2019) Content-aware trust propagation toward online review spam detection. J Data Inform Qual (JDIQ) 11(3):1–3133. Li J, Lv P, Xiao W, Yang L, Zhang P (2021) Exploring groups of opinion spam using sentiment analysis guided by nominated top-ics.Expert Systems with Applications,17134. Muhlenbach F, Lallich S, Zighed DA (2004) Identifying and Han-dling Mislabelled Instances. J Intell Inform Syst 22(1):89–10935. Chen C-C, Huang H-H, Chen H-H (2018) NTUSD-Fin: a market sentiment dictionary for financial social media data applications. Proceedings of the Proceedings of the 1st Financial Narrative Processing Workshop (FNP 201836. Li J, Zhang P, Yang L (2021) An unsupervised approach to detect review spam using duplicates of images, videos and Chinese texts. Comput Speech Lang 68:101186Publisher’s Note Springer Nature remains neutral with regard to juris-dictional claims in published maps and institutional affiliations.Springer Nature or its licensor holds exclusive rights to this article under a publishing agreement with the author(s) or other rightsholder(s); author self-archiving of the accepted manuscript version of this arti-cle is solely governed by the terms of such publishing agreement and applicable law.6. Oh YW, Park CH (2021) Machine Cleaning of Online Opinion Spam: Developing a Machine-Learning Algorithm for Detecting Deceptive Comments. Am Behav Sci 65(2):389–4037. Mukherjee A, Venkataraman V, Liu B, Glance NW (2013) Yelp Fake Review Filter Might Be Doing. Proceedings of the the Seventh International AAAI Conference on Weblogs and Social Media of Conference, AAAI, 409–4188. Mukherjee A, Liu B, Wang J, Glance N, Jindal N, Detecting Group Review Spam. Proceedings of the Proceedings of the 20th international conference companion on World Wide Web (WWW 2011) (2011) of Conference, 93–949. Vrij A (2008) Detecting Lies and Deceit: Pitfalls and Opportuni-ties. John Wiley & Sons10. Tang X, Qian T, You Z (2020) Generating behavior features for cold-start spam review detection with adversarial learning. Inf Sci 526:274–28811. Kabir HD, Khosravi A, Nahavandi S, Kavousi-Fard (2019) A.J.I.T.o.E.T.i.C.I. Partial adversarial training for neural network-based uncertainty quantification. 5:595–606412. Somayeh S et al (2013) Detecting Deceptive Reviews Using Lexical and Syntactic Features. Proceedings of the 13th Interna-tional Conference on Intellient Systems Design and Applications, of Conference, IEEE, 53–5813. Anderson E, Simester D (2013) Deceptive reviews: the influential tail. Proceedings of the Working paper, Sloan School of Manage-ment., of Conference, Northwestern University, 1–4014. Wang Qianqian LB, Wenchang S, Zhaohui L, Wei S (2010) Detecting Spam Comments with Malicious Users’ Behavioral Characteristics. Proceedings of the ICITIS2010: 2010 IEEE International Conference on Information Theory and Information Security, of Conference, IEEE, 563–56715. Asghar MZ, Ullah A, Ahmad S, Khan A (2020) Opinion spam detection framework using hybrid classification scheme. Soft Comput 24(5):3475–349816. Tian Y, Mirzabagheri M, Tirandazi P, Bamakan SMH (2020) A non-convex semi-supervised approach to opinion spam detection by ramp-one class SVM. Inf Process Manag 57(6):10238117. Neisari A, Rueda L, Saad S (2021) Spam review detection using self-organizing maps and convolutional neural networks. Com-puters & Security 106:10227418. Fahfouh A, Riffi J, Adnane Mahraz M, Yahyaouy A, Tairi H (2020) PV-DAE: A hybrid model for deceptive opinion spam based on neural network architectures. Expert Syst Appl 157:11351719. Hajek P, Barushka A, Munk M (2020) Fake consumer review detection using deep neural networks integrating word embeddings and emotion mining. Neural Comput Appl 32(23):17259–1727420. Ren Y, Ji D (2017) Neural networks for deceptive opinion spam detection: An empirical study. Inf Sci 385:213–22421. Zhang F, Qiu L, Qi P, Luo HA (2020) Novel Text Features Joint-ing Model for Review Spam Filtering of Chinese. Proceedings of the International Wireless Communications and Mobile Comput-ing (IWCMC), 2020, IEEE, 2051–205622. Li L, Qin B, Ren W, Liu T (2017) Document representation and feature combination for deceptive spam review detection. Neuro-computing 254:33–41
+1 310799
+
+Title: 공가현황 - 대시보드(수강생 공유).pdf
+*2024.11.25 기준 ( 승인된  건 만)
+이름 잔여 병가 잔여휴가 결석일
+구나연 10 6 6 수료 D-26 일
+김병수 8 4 16 총 병가 12 개
+김성은 12 6 1 총 휴가 6 개
+김원철 8 3 15
+김재성 11 5 2
+김종식 11 5 8
+문건우 12 4 4
+박규택 12 6 5
+박용주 4 3 12
+박종명 12 5 10
+박중헌 12 4 8
+박지용 8 5 4
+서민정 8 5 8
+송명신 9 4 11
+송영빈 11 6 3
+오승민 9 6 7
+유혜린 7 5 6
+이주원 4 5 6
+이준경 10 4 19
+이준석 12 6 7
+장수연 11 5 5
+정재현 11 6 5
+정해린 5 3 7
+진윤화 12 6 12
+최연규 10 5 3
+하은진 10 5 7
+허지원 7 5 11
+
+Title: 복무규정.pdf
+복무규정
+제1장총칙
+제1조(목적 )이규정은○○○○(이하 “회사 ”라한다 )의직원복무에관한사항을규정하여
+복무규율의확립과효율적인조직운영을기함을목적으로한다.
+제2조(적용범위 )이규정은회사에근무하는임직원 (이하 “직원 ”이라한다 )에대하여적
+용한다 .
+제2장직원의준수사항
+제3조(준수사항 )직원은직무를수행함에있어다음각호의사항을준수하여야한다 .
+1.회사의설립목적에따라회사의목표달성을위해적극노력하여야한다.
+2.예절과규율을존중하고직원으로서품위를유지하며회사의신용을추락시키거나
+명예를훼손하는행위를해서는안된다 .
+3.재직중은물론퇴직후라도회사의기밀사항을누설하는행위를해서는안된다 .
+4.법령및회사의제규정을성실히준수하고상사의정당한직무상지시에따라야한
+다.
+5.근무시간중항상있는곳을분명히하며,회사의사전승인없이무단이탈 또는무단
+결근하는행위를해서는안된다 .
+6.회사내에서성희롱을해서는안된다 .
+7.업무상취급하게되는공금을유용 ,횡령하는행위를해서는안된다 .
+8.직원상호간예의와우애를가지며타인의근무를방해하거나동료간의불화를 야기하
+는언행등회사내규율및질서를문란케해서는아니된다 .
+9.회사내의청결및도난,화재방지를비롯한모든안전및보건관리에적극협조하여
+야한다 .
+10.천재지변그밖의비상상태발생시에는근무시간의내외를막론하고사장의 지시에
+따라신속히대처하여야한다 .
+제4조(책임완수 )직원은창의와성실로서맡은바책임을완수하여야한다 .
+제5조(복장등)직원은근무중직원으로서품위를유지할수있는단정한복장과 근무태
+도를유지하여야한다 .
+제6조(임직원행동강령준수 )직원은부패방지및깨끗한공직풍토조성을위하여 “임직원
+행동강령 ”을준수하여야한다 .
+제7조(겸직금지 )직원은사장의허가없이회사이외의보수를목적으로하는타업에종사
+하거나겸직할수없다 .제8조(손해배상의무 )직원은고의또는명백한과실로인하여회사에손해를끼쳤을때에
+는배상의책임을진다 .
+제9조(출입금지 )회사는다음각호의어느하나에해당되는직원에대하여 회사의출입
+을금지시킬수있다 .
+1.관계법령및규정에따라출근을정지당한직원
+2.회사의질서및규율을문란하게하거나보건상해롭다고인정되는직원
+3.화기 ,흉기 ,불온유인물이나서류등으로업무를방해하거나방해할우려가있는직
+원
+4.그밖의회사가출입을금지시키는것이필요하다고인정하는직원
+제3장근무
+제10조(근무시간 )①직원의근무시간은휴식시간을제외하고 1일8시간 ,1주간 40시간
+으로한다 .단,회사의업무상필요하다고인정할경우당사자의합의하에 1주간 1
+2시간한도내에서근로시간을연장할수있다 .
+②시업과종업,휴게시간은회사의업무사정및직무,계절등에따라알맞게조정할수
+있다 .
+③직원은규정된시간내에출근하여야한다 .
+제11조(유연근무 )①직원은통상의근무시간
+근무일
+근무장소를변경하는근무또는정
+보통신망을이용하는온라인원격근무를사장에게신청할수있다 .
+②온라인원격근무를할경우회사는정보통신망에대한불법적인접근의방지,그밖의
+보안대책을마련하여야한다 .
+③직원이유연근무를신청한경우회사는업무수행에특별한지장이없으면이를허가
+하여야하며 ,유연근무를이유로그직원의보수
+승진및근무평정등에서부당한불이익
+을주어서는아니된다 .
+④유연근무실시의범위,유형,실시절차와그밖의필요한사항은별도로정한다 .
+제12조(출장자등에대한근로시간 )직원이출장의사유로근로시간의전부또는일부를회
+사밖에서근로하여근로시간을산정하기어려운때에는소정근로시간을근로한것으
+로본다 .단,해당근로업무를수행하기위하여통상적으로소정근로시간을초과하여
+근로할필요가있는경우에는그업무의수행에 필요한시간을근로한것으로본다 .
+제13조(시간외근무및휴일근무 )①업무처리상필요하다고인정될때에는제10조의규정
+에도불구하고근무시간외의근무를명하거나공휴일근무를명할수있다 .
+②제1항의규정에따른시간외근무또는휴일근무를한자에대하여는
+보수규정
+에서
+정하는바에따라예산범위에서연장근로수당을지급한다 .
+③제1항의규정에따라공휴일에근무를한경우에는다른정상근무일을지정하여휴무
+하게할수있다.④임신중이거나산후 1년이지나지아니한여성과 18세미만직원은오후 10시부터오
+전6시까지의시간및휴일에근로시키지못한다 .다만,다음각호의어느하나에해당하
+는경우로서고용노동부장관의 인가를받으면그러하지아니하다 .
+1.18세미만직원의동의가있는경우
+2.산후 1년이지나지아니한여성의동의가있는경우
+3.임신중의여성이명시적으로청구하는경우
+제14조(결근등의처리 )①신병의사유로출근하지못한경우에는그사유를사전에신고하여
+전결권자에게허가를받아야한다.단,부득이한경우에는우선통신의 방법으로신속히
+소속부서(실)에연락하여그사유에합당한종류의휴가조치를받아야한다 .
+②전결권자의허가(사후허가를포함)를받아결근을한경우에는연차휴가로처리하고 ,허
+가없이결근한경우에는무단결근으로처리한다 .
+제15조(무단이석및외출금지 )①직원은근무시간중무단이석혹은외출을해서는 아니된다.
+②질병및그밖의사유로조퇴하거나근무시간중에외출할때에는시간
+용무
+행선
+지등을상급자에게보고하고허가를받아야한다 .
+③직원이근무시간중업무상외출을할경우에는사전승인을받아야한다 .
+제16조(지각 ,조퇴․외출 )①직원이지각했을경우회사에그사유를신고하여야 한다 .
+②사전승인을받지아니한조퇴 ,외출은무단조퇴 ,무단외출로간주한다 .
+③질병이나부상외의사유로인한지각,조퇴․외출은누계 8시간을연가 1일로계산한
+다.
+제17조(육아시간 )회사는생후 1년미만의유아를가진여직원의청구가있을경우에는 1
+일2회,각각 30분이상의유급수유시간을주어야한다 .
+제18조(가정의날)회사는직원가족의화목을증진하고 ,가정과직장의일체감을 높일수있
+도록가정의날을시행할수있다 .
+제19조(근무상황관리 )각부서(실)장은소속직원의근무상황을확인
+점검하여야한다 .
+제20조(근무상황부관리 )인사관리담당부서장은근무상황부또는전산근무상황부를
+통해직원의근무상황을관리해야한다 .
+제20조의 1(근무상황위반자조치 )①사장은직원의근무상황관리중복무및보안업무
+위반자에대해 [별표 1]복무․보안위반행위처분기준에따라조치하여야한다 .
+②복무및보안업무위반사항이경미할경우추가당직근무등벌당직을부과할수있
+다.
+제21조(근무상황의구분 )근무상황부에는다음의표시로써직원의근무상황을 정리하
+여야한다 .
+1.연휴 :연차휴가
+2.병가 :병가3.공가 :공가
+4.특휴 :특별휴가
+5.결근 :무단결근
+6.휴직 :질병및그밖의사유로인한 3일이상의인병휴직
+7.정직 :징계에의한정직기간
+8.출장 :업무를위한출장
+9.파견:타기관또는해외에파견근무중의기간
+10.지각 :근무시작시간후출근
+11.조퇴 :근무종료시간전에업무이외용건으로퇴근
+12.외출 :근무시간중에업무이외의용건으로출타
+제4장출장
+제22조(출장의구분 )①출장은국내출장과국외출장으로구분한다 .
+②국내출장은시내출장과시외출장으로구분한다 .
+제23조(출장의명령 )출장자는전결권자에게사전에출장을신청하여야하며,전결권자는검
+토후출장을명령할수있다 .
+제24조(출장의변경및취소 )업무상황에따라출장의명령또는승인사항을변경
+취소하고
+자할경우에는명령자또는승인자의승인을받아야한다 .
+제25조(출장결과의보고 )국내
+외출장자는귀임후다음각호의기준에따라 서면으
+로결과를보고하여야한다 .단,경미한사유에대해서는구두로결과보고할수있
+다.
+1.국내출장 :귀임3일이내
+2.국외출장 :귀임10일이내
+제26조(출장비의정산 )출장자의출장지 ,출장기간등의변경사유가발생한경우여비규
+정및관련규정에따라출장비를환수하거나추가지급할수있다 .
+제27조(파견 )파견직원의복무관리는파견된기관의장이행한다 .단,그직원에게 징계사
+유가발생한경우에는해당직원의소속기관의장에게그사실을통보하여야한다 .
+제28조(사무인계 )직원이퇴직 ,휴직 ,인사이동등사무인계사유가발생한경우 ,사무인계
+직원은담당업무의서류,비품,미결내용등을기재한
+사무관리규정
+의업무인수인계서
+확인서를작성하여인수자에게성실히사무인계를하여야한다.
+제5장휴일과휴가
+제29조(유급휴일 )①회사의휴일은아래각호와같다.
+1.회사창립기념일(매년0월0일)
+2.근로자의날3.‘관공서공휴일에관한규정 ’에관한규정에서정하는공휴일
+4.정부에서지정하는 (임시 )공휴일
+5.그밖의회사가별도로정한날
+②전항각호의휴일이중복될경우에는하나의휴일로취급한다 .
+제30조(휴일변경 )①제29조의휴일은회사의업무 ,그밖의부득이한사유가있다고인정
+될경우합의하에직원전부또는일부에대하여다른날로변경할수있다 .
+②휴일을변경하는경우에는사전에변경하는다른날을지정한다 .
+제31조(휴가의종류 )직원의휴가는연차휴가 ,병가 ,공가 ,특별휴가로구분한다 .
+제32조(휴가의허가 )휴가를얻고자할경우에는근무상황부에그사유를기재하여 위임전
+결규정에따른전결권자의허가를받아야한다 .
+제33조(연차유급휴가 )①회사는 1년간 8할이상출근한사원에게는 15일의연차유급휴가
+를준다 .단,계속근로년수가 1년미만인직원과 1년간 8할미만출근한직원에대해서
+는1개월간개근시1일의유급휴가를부여한다 .
+②최초1년을초과하는계속근로연수매2년에유급휴가 1일을가산하며 ,이경우총
+휴가일수는 25일을한도로한다 .
+③제1항내지제3항의규정에따른휴가는직원의청구시기에부여하여야하며,미사용
+휴가일수에대해서는보수규정이정하는바에따라유급휴가수당을지급한다 .단,직원이
+청구한시기에휴가를부여하는것이회사운영에막대한지장이있는경우에는그시기
+를변경할수있다 .
+④연차휴가는회계연도단위로부여하며 ,구체적인시행에관한사항은사장이따로정
+하는바에따른다 .
+제34조(연차휴가의사용 )①직원이연차유급휴가를사용하고자할경우에는부득이한사
+유가없으면사전에소속부서 (실)장에게승인을얻어야한다 .
+②회사는직원의연차유급휴가사용으로인해업무에차질이예상되는경우그시기를
+변경할수있다 .
+③직원의연차유급휴가청구권은회사의귀책사유로휴가를사용하지못한경우를제외
+하고는발생한날로부터 1년간행사하지아니할경우에는소멸한다.
+④회사는근로기준법제61조에따라연차유급휴가사용을촉진할수있다 .
+제35조(연차유급휴가의사용촉진 )회사가제34조제4항의규정에따른유급휴가의사용을
+촉진하기위하여다음각호의조치를하였음에도불구하고 ,
+직원이휴가를사용하지아니하여제34조제3항의규정에따라소멸된경우에는 회사는
+그미사용일수에대하여보상할의무가없으며 ,제34조제3항의
+회사의귀책사유에해당하지아니하는것으로본다 .
+1.제34조제3항의규정에따른기간이끝나기 6개월전을기준으로 10일이내에 인사관
+리담당부서는미사용휴가일수를알려주고,직원이그사용시기를 정하여인사관리
+담당부서에통보하도록서면으로촉구한경우2.제1호의규정에따른촉구에도불구하고직원이촉구를받은날로부터 10일이내에
+미사용휴가의전부또는일부의사용시기를정하여인사관리담당부서에통보하지
+아니하여제34조제3항의규정에따른기간이끝나기 2개월전까지인사관리담당부
+서가미사용휴가의사용시기를정하여직원에게서면으로통보한경우
+제36조(연차유급휴가의대체 )①회사는근로자대표와서면합의에따라휴가일에대신하여
+특정한근로일에직원을휴무시킬수있다 .
+②제1항의근로자대표와서면합의는휴무시키고자하는날3일전에이루어지도록노력
+한다 .
+③직원이질병그밖의부득이한사유로결근하고 ,사후지체없이신고한경우에는남은
+연차휴가한도내에서이를연차휴가로대체할수있다 .
+제37조(병가 )①직원의직무수행으로인한부상이나질병으로출근이불가능한경우요양
+기간이내의병가를줄수있다 .
+②직무수행외의부상또는질병으로출근이불가능한경우연60일(업무상질병․부상
+의경우연180일)이내의병가를줄수있다 .
+③질병으로인하여 3일이상계속결근하고자할경우에는특별한경우를제외하고는
+진단서를첨부하여결근계를제출하여야한다 .
+제38조(특별휴가 )회사의특별휴가종류및일수는 [별표 2]과같다.
+제39조삭제
+제40조삭제
+제41조(공가 )직원이다음각호의어느하나에해당하는경우에는필요한기간에 대하여
+공가를허가할수있다 .
+1.병역검사나검열점호 ,예비군훈련,민방위훈련이있을경우
+2.업무와관련하여법원등에소환될경우
+3.법률의규정에따른투표에참가하거나그밖의업무를수행할경우
+4.
+국민건강보험법시행령
+제25조의규정에따른건강검진을받을경우
+5.천재지변 ,화재,수재,교통차단그밖의재해의사유로출근이불가능한경우
+제42조(연차유급휴가와의 관계 )특별휴가 ,포상유급휴가 ,병가 ,공가기간은연차유급휴가
+일수에영향을미치지않는다 .
+제43조(휴가의사전승인 )휴가는사전에승인을받아야한다 .
+제44조(휴가기간중의공휴일 )토요일과공휴일은휴가일수에제외한다 .단,병가와특별
+휴가중휴가기간이 30일이상계속되는경우에는그휴가일수에토요일과공휴일을산
+입한다 .
+제45조(임산부의보호 )①삭제②삭제
+③직원이산전
+후휴가급여를신청할경우고용보험법에따라산전
+후휴가급여를받
+을수있도록증명서류를제공하는등적극협조한다 .
+④제3항에따른 90일보호휴가기간 (다태아를임신한경우 120일)중에직원이고용보험
+법에따라지급받은산전
+후휴가급여액이그직원의통상임금보다적을경우최초60일
+(다태아를임신한경우 75일)분의급여와통상임금의차액에대해서는회사가지급
+한다 .
+⑤임신중의여성직원에게시간외근로를시키지아니하며 ,요구가있는경우신체에
+영향을주지않는형태의근로로전환시킨다.
+⑥임신후12주이내또는 36주이후에있는여직원이 1일2시간의근로시간단축을
+신청하는경우이를허용한다 .다만 ,1일근로시간이 8시간미만인근로자에대하여는
+1일근로시간이 6시간이되도록근로시간단축을허용할수있다 .
+⑦임신한여직원이모자보건법제10조에따른임산부정기건강진단을받는데필요한
+시간을청구하는경우이를허용한다 .
+⑧제6항과제7항을이유로보수를삭감하지아니한다 .
+제46조삭제
+제6장직권정지및집무정지
+제47조삭제
+제48조삭제
+제49조삭제
+제50조삭제
+제7장신원보증
+제51조(신원보증 )①회사의회계업무담당자및관련책임자는회사를피보험자로하는신
+원보증보험(이하 “보증보험”이라한다 )에가입하여야한다 .
+②제1항에따라회계직직원이보증보험에가입하는경우의보험금액은회사형편에따라
+사장이따로정한다 .
+③제2항에의한직원의보험료는회사가부담한다 .
+제52조(신원보증기간과갱신 )①신원보증기간은계약기간만료일까지로한다 .
+②제1항의기간이만료할경우에는만료일이전에신원보증을갱신하여야한다.
+제53조(보관및관리 )신원보증서는인사관리담당부서에서보관
+관리한다 .
+제8장보칙
+제54조(규정시행 )이규정에정하지아니한사항과이규정의시행에필요한사항은사장이별도로정하는바에따른다 .
+부칙 <2019. 9.27개정>
+제1조(시행일 )이규정은사장의승인을얻은날로부터시행한다 .[별표 1]
+복무․보안위반행위처분기준
+분
+야위반사항1차처분기준
+시정주의경고징계
+복무□ 당직및비상근무규정위반
+◦당직근무지무단이탈 ●
+◦당직보고미이행 ●
+◦당직근무자의보안점검미실시 ●
+□ 출장관련복무위반
+◦출장과관련없는사적인용무수행 ●
+◦결재권자의명령없이출장수행 ●
+□ 근무시간미준수
+◦출․퇴근시간 ,점심시간미준수 ●
+◦유연근무 (시간․근무일 )변경승인없이
+변경근무이행●
+◦휴가․지각․조퇴․외출․장시간이석등
+승인없이이행●
+□ 행동강령및청탁금지법위반
+◦부정청탁을받고법령을위반하여직무처리 ●
+◦법령을위반한금품수수 ●
+□ 정치운동및노동운동
+◦정치적행위이행 ●
+◦노무에종사하지않고노동운동이나
+업무외일을위한집단행위이행●
+일반
+보안□ 중요자료및물품방치
+◦비밀․대외비문서방치 ●
+◦일반문서등방치 ●
+◦캐비닛열쇠방치 ●
+◦캐비닛및책상서랍미시건 ●
+◦전열기구 (PC)등전기제품전원차단미흡●
+□ 보안시설관리소홀
+◦보호구역출입제한 (대장정리등)미흡●
+◦무인시스템해제상태에서퇴근●
+정보
+보안□ PC등전산장비관리위반
+◦업무용 USB(외장하드)방치 ●
+◦PC패스워드미설정 ●
+◦PC패스워드노출 ●
+※위반자는위의처분과별도로벌당직부과가능
+※시정 2회시주의 ,주의 2회시경고 ,경고 3회시징계[별표 2]
+특별휴가의종류및일수
+구분 내 용 휴가일수
+경
+조
+사
+휴
+가결혼·본인
+·자녀5일
+1일
+출산·배우자출산 10일
+입양·본인이입양한경우 20일
+사망·배우자 ,본인·배우자의부모
+·본인및배우자의조부모·외조부모
+·자녀와그자녀의배우자
+·본인및배우자의형제자매5일
+3일
+3일
+1일
+보
+호
+휴
+가출산·본인(다태아출산일경우 ) 90일(120일)
+유산·사산
+휴가·임신후유산또는사산으로요양이
+필요하여
+청구하는경우 (의사진단서첨부)
+-임신기간이 11주이내유산또는
+사산한날부터
+5일
+-임신기간이 12주이상 15주이내 10일
+-임신기간이 16주이상 21주이내 30일
+-임신기간이 22주이상 27주이내 60일
+-임신기간이 28주이상 90일
+불임치료·인공수정또는체외수정등불임치료시술 1일
+모성보호·임신후12주이내 ,임신후36주이상 2시간 /일
+육아시간·생후 1년미만의유아를가진여성 1시간 /일
+보건휴가·임신한경우태아검진 월1일
+·생리휴가 월1일(무급 )
+자녀돌봄휴가·어린이집,유치원 ,초․중․고등학교에서
+공식적으로주최하는행사또는교사와의
+상담에참여하는경우연2일
+방통대출석·한국방송통신대학교에재학중인경우연가일수초과시
+수업일수
+재해·수재 ,화재 ,붕괴 ,폭발등의재해또는
+재난발생시최소한의복구기간
+(5일이내 )
+※특별휴가중장거리여행을요할경우에는왕복소요최단일수를가산할수있다.
+※출산휴가는산후휴가일이 45일이상 (다태아의경우 60일이상 )이되도록배치해야
+하며 ,휴가중90일은유급으로한다 .
+※임산부가정기건강진단시간을청구하는경우,모자보건법시행규칙[별표 1]에근거하여
+허용함
+
