@@ -27,6 +27,10 @@ def get_parameter(name, with_decryption=True):
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_parameter('/mega/SECRET_KEY')
+SLACK_APP_TOKEN = get_parameter('/mega/slack/SLACK_APP_TOKEN')
+SLACK_BOT_TOKEN = get_parameter('/mega/slack/SLACK_BOT_TOKEN')
+agent_url = get_parameter('/mega/AGENT_API_URL')
+OPENAI_API_KEY = get_parameter('/mega/OPENAI_API_KEY')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -48,7 +52,37 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'schedule',
+    'megabot',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',  # Swagger UI
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+     # General schema metadata. Refer to spec for valid inputs
+    # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#openapi-object
+    'TITLE': 'drf-spectacular API Document',
+    'DESCRIPTION': 'drf-specatular 를 사용해서 만든 API 문서입니다.',
+    'SWAGGER_UI_SETTINGS': {
+        # Swagger UI에 전달할 설정들
+        'dom_id': '#swagger-ui',
+        'layout': 'BaseLayout', 
+        'deepLinking': True,  # URL로 특정 API 엔드포인트 링크 가능
+        'displayOperationId': True,
+        'filter': True, # API 필터링 가능
+    },
+   
+    'LICENSE': {
+        'name': 'MIT License',
+    },
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False, # 클라이언트에 스키마 노출 여부 설정
+
+    'SWAGGER_UI_DIST': '//unpkg.com/swagger-ui-dist@3.38.0',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -86,11 +120,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': get_parameter('/mega/oh-db-info/DB_NAME'),
+        'USER': get_parameter('/mega/oh-db-info/DB_USER'),
+        'PASSWORD': get_parameter('/mega/oh-db-info/DB_PASSWORD'),#, with_decryption=True),
+        'HOST': get_parameter('/mega/oh-db-info/DB_HOST'),
+        'PORT': get_parameter('/mega/oh-db-info/DB_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

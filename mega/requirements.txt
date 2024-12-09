@@ -2,3 +2,9 @@ django
 pymysql
 gunicorn
 boto3
+drf-spectacular
+requests
+openai
+flask
+drf_spectacular_sidecar
+mysqlclient
