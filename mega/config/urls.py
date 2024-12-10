@@ -16,9 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("", include("schedule.urls")),
-    path("schedule/", include("schedule.urls")),
+    path('', TemplateView.as_view(template_name='dashboard/login.html'), name='home'),  # 루트 페이지
+    #path("", include("dashboard.urls")),  # schedule 앱 기본 URL
+    path("dashboard/", include("dashboard.urls")),  # schedule 앱 경로
+    path("accounts/", include('allauth.urls'))
 ]

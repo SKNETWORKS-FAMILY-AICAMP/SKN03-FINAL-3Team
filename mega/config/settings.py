@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 
 import boto3
+import os 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -51,11 +52,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'schedule',
-    'megabot',
-    'drf_spectacular',
-    'drf_spectacular_sidecar',  # Swagger UI
+    'dashboard',
+    # 로그인
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
+
+SITE_ID = 1
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -84,6 +90,8 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_DIST': '//unpkg.com/swagger-ui-dist@3.38.0',
 }
 
+GOOGLE_CALENDAR_CREDENTIALS = os.path.join(BASE_DIR, 'credentials.json')
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -92,7 +100,47 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware' # 로그인 기능
 ]
+
+
+LOGIN_REDIRECT_URL = '/dashboard/' # 로그인 후 리다이렉트할 페이지 주소임
+LOGOUT_REDIRECT_URL = '/'
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # 장고에서 사용자의 이름을 기준으로 로그인하도록 설정
+    'allauth.account.auth_backends.AuthenticationBackend', # 'allauth'의 인증방식 추가
+)
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": get_parameter("/mega/auth/google/CLIENT_ID"),
+            "secret": get_parameter("/mega/auth/google/CLIENT_SECRET"),
+            "key": ""
+        },
+        "SCOPE": [
+            "profile",
+            "email", 
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online", 
+            'prompt': 'select_account', # 간편 로그인 지원
+        }
+    }
+}
+
+
+# 로그인 단계 간략화하기 위함 (페이지 하나 제거)
+ACCOUNT_LOGIN_ON_GET = True  # 로그인 버튼 클릭 시 즉시 로그인 시작
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # 이메일 인증 방식만 사용
+ACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_LOGIN_ON_GET = True  # 소셜 로그인 시 추가 동작 제거
+
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'  # 로그아웃 후 리디렉션 경로
+LOGOUT_URL = '/logout/'  # 커스텀 로그아웃 URL
+
+
 
 ROOT_URLCONF = 'config.urls'
 
@@ -164,7 +212,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 #STATIC_URL = 'static/'
-import os 
+
 
 STATIC_ROOT = '/static/'
 STATIC_URL = "static/"
