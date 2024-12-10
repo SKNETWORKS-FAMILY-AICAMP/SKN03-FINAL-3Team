@@ -30,8 +30,9 @@ def get_parameter(name, with_decryption=True):
 SECRET_KEY = get_parameter('/mega/SECRET_KEY')
 SLACK_APP_TOKEN = get_parameter('/mega/slack/SLACK_APP_TOKEN')
 SLACK_BOT_TOKEN = get_parameter('/mega/slack/SLACK_BOT_TOKEN')
-agent_url = get_parameter('/mega/AGENT_API_URL')
 OPENAI_API_KEY = get_parameter('/mega/OPENAI_API_KEY')
+GOOGLE_CALENDAR_API_KEY = get_parameter('/mega/calendar/googleCalendarApiKey')
+GOOGLE_CALENDAR_ID = get_parameter('/mega/calendar/googleCalendarId')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/

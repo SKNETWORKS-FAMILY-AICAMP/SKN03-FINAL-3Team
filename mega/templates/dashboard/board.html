@@ -2,14 +2,71 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Dashboard</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.15/index.global.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            let popup = document.querySelector('dialog');
+            
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                googleCalendarApiKey: "{{ google_calendar_api_key }}", // API 키 삽입
+                events: {
+                    googleCalendarId: "{{ google_calendar_id }}" // 캘린더 ID 삽입
+                },
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault();
+    
+                    popup.querySelector('div').innerHTML = `
+                    <h3>${info.event.title}</h3>
+                    <div>${info.event.extendedProps.description}</div>
+                    `;
+                    popup.setAttribute('open', 'open');
+                }
+            });
+            calendar.render();
+            popup.querySelector('button').addEventListener('click', ()=>{
+                popup.removeAttribute('open');
+            });
+        });
+    </script>
+    <style>
+        dialog{
+            position: fixed;
+            width: 300px;
+            margin: 0;
+            z-index:100;
+            padding: 30px;
+            background-color:beige;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 2px 2px 5px rgba(0,0,0,.5);
+            border: none;
+            border-radius: 10px;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>대시보드 화면</h1>
+    <div id='calendar'></div>
+    <dialog>
+        <div>제목 테스트</div>
+        <button>닫기</button>
+    </dialog>
+
+
+
 
     {% if user.is_authenticated %}
         <a href="{% url 'logout' %}">Logout</a>
     {% endif %}
 </body>
 </html>
+
+
+
+
+ 

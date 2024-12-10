@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialAccount
 from .models import fetch_hrdata_employee, fetch_hrdata_teammanagements
-from django.contrib.auth import logout # 한 번에 로그아웃
-
+from django.contrib.auth import logout  # 한 번에 로그아웃
+from django.conf import settings
 
 @login_required
 def login_check(request):
@@ -34,7 +34,13 @@ def login_check(request):
         # 인사팀(TEAM01) 권한
         department = team_info.iloc[0].get('team_id')
         if department == 'TEAM01':
-            return render(request, 'dashboard/board.html')  # 대시보드 렌더링
+            # FullCalendar API 키와 캘린더 ID를 템플릿에 전달
+            context = {
+                'google_calendar_api_key': settings.GOOGLE_CALENDAR_API_KEY,
+                'google_calendar_id': settings.GOOGLE_CALENDAR_ID,
+            }
+            return render(request, 'dashboard/board.html', context)  # 대시보드 렌더링
+
         return render(request, 'dashboard/error.html', {'error_message': '권한 없음: 해당 부서가 아닙니다.'})
 
     except SocialAccount.DoesNotExist:
@@ -48,7 +54,7 @@ def login_check(request):
     except Exception as e:
         # 기타 예외 처리
         return render(request, 'dashboard/error.html', {'error_message': f"알 수 없는 오류: {str(e)}"})
-    
+
 
 def custom_logout(request):
     logout(request)
