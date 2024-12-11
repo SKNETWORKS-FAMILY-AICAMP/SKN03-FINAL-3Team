@@ -22,7 +22,6 @@ class Command(BaseCommand):
     help = "Run Slack Socket Mode client"
 
     def handle(self, *args, **options):
-        # Slack WebClient와 SocketModeClient 초기화
         web_client = WebClient(token=settings.SLACK_BOT_TOKEN)
         socket_mode_client = SocketModeClient(
             app_token=settings.SLACK_APP_TOKEN, web_client=web_client
@@ -53,18 +52,16 @@ class Command(BaseCommand):
                 channel_id = event.get("channel", "")
                 user_id = event.get("user", "")
 
-                # 간단한 응답 처리
-                response_text = (
-                    f"안녕하세요! 당신이 보낸 메시지: '{user_message}' 입니다."
-                )
+                # 실제 에이전트 로직 호출
+                response_text = handle_slack_event(user_message, user_id, channel_id)
+
+                # Slack에 응답 메시지 전송
                 client.web_client.chat_postMessage(
                     channel=channel_id, text=response_text
                 )
 
         # Socket Mode Client에 이벤트 리스너 등록
         socket_mode_client.socket_mode_request_listeners.append(process)
-
-        # Socket Mode Client 시작
         socket_mode_client.connect()
 
         logger.info("Slack Socket Mode client started.")
