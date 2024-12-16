@@ -13,7 +13,7 @@ def extract_response_format(user_input: str) -> str:
 def generate_response_prompt(
     user_role: str, user_input: str, response_format: str, query_result
 ) -> str:
-    return f"""
+    return f""" 
     사용자 역할: {user_role}
     질문: {user_input}
     응답 형식: {response_format}

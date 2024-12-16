@@ -68,3 +68,26 @@ def get_user_role(slack_id: str) -> dict:
         "team_name": team_name,
         "team_leader": team_leader,
     }
+
+
+def get_access_level(user_info: dict) -> str:
+    managerial_ranks = ["부장"]
+    rank_name = user_info.get("rank_name", "")
+    department_name = user_info.get("department_name", "")
+    team_name = user_info.get("team_name", "")
+    team_leader = user_info.get("team_leader", False)
+
+    # 인사팀 여부 판단 (예: 지원부-인사팀)
+    if "지원부" in department_name and "인사팀" in team_name:
+        return "ALL_ACCESS"
+
+    # 관리직급 판단
+    if rank_name in managerial_ranks:
+        return "DEPARTMENT_ACCESS"
+
+    # 팀장 판단
+    if team_leader:
+        return "TEAM_ACCESS"
+
+    # 일반 직원
+    return "SELF_ONLY"
