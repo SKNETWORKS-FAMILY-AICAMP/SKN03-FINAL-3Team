@@ -21,7 +21,7 @@ def login_check(request):
             return render(request, 'dashboard/error.html', {'error_message': '등록되지 않은 직원입니다.'})
 
         # 직원의 ID 가져오기
-        employee_id = employee.iloc[0]['id']
+        employee_id = employee.iloc[0]['employee_id']
 
         # hrdata_teammanagements 테이블에서 부서 확인
         df_team_management = fetch_hrdata_teammanagements()
@@ -39,7 +39,7 @@ def login_check(request):
                 'google_calendar_api_key': settings.GOOGLE_CALENDAR_API_KEY,
                 'google_calendar_id': settings.GOOGLE_CALENDAR_ID,
             }
-            return render(request, 'dashboard/board.html', context)  # 대시보드 렌더링
+            return render(request, 'dashboard/board_dev.html', context)  # 대시보드 렌더링
 
         return render(request, 'dashboard/error.html', {'error_message': '권한 없음: 해당 부서가 아닙니다.'})
 
@@ -54,6 +54,30 @@ def login_check(request):
     except Exception as e:
         # 기타 예외 처리
         return render(request, 'dashboard/error.html', {'error_message': f"알 수 없는 오류: {str(e)}"})
+
+@login_required
+def board_dev(request):
+    return render(request, 'dashboard/board_dev.html')
+
+@login_required
+def board_hr(request):
+    return render(request, 'dashboard/board_hr.html')
+
+@login_required
+def board_accounting(request):
+    return render(request, 'dashboard/board_accounting.html')
+
+@login_required
+def board_marketing(request):
+    return render(request, 'dashboard/board_marketing.html')
+
+@login_required
+def board_sales(request):
+    return render(request, 'dashboard/board_sales.html')
+
+@login_required
+def board_support(request):
+    return render(request, 'dashboard/board_support.html')
 
 
 def custom_logout(request):

@@ -1,0 +1,40 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.15/index.global.min.js'></script>
+    <link rel="stylesheet" href="{% static 'css/calendar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chart.css' %}">
+</head>
+
+<body>
+
+    <div id="chart-container">
+        <h3><!--{{ department }}--> 질문 키워드 Top 5</h3>
+        <h3>질문 키워드 Top 5</h3>
+        <canvas id="myChart" width="400" height="200"></canvas>
+    </div>
+
+    <div id='calendar'></div>
+    <dialog>
+        <div>제목 테스트</div>
+        <button>닫기</button>
+    </dialog>
+
+
+
+
+    {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}">Logout</a>
+    {% endif %}
+
+    
+    <!-- JavaScript 연결 -->
+    <script src="{% static 'js/calendar.js' %}"></script>
+    <script src="{% static 'js/chart.js' %}"></script>
+</body>
+</html>
