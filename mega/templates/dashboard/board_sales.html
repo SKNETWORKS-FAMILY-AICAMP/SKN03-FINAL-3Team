@@ -2,114 +2,96 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>
-    Argon Dashboard - Free Dashboard for Bootstrap 4 by Creative Tim
-  </title>
-  <!-- Favicon -->
-  <link href="./assets/img/brand/favicon.png" rel="icon" type="image/png">
-
-  <!-- Fonts 
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet"> -->
-
+  <title>MeGA DASHBOARD</title>
+  <link href="{% static 'img/mega.png' %}" rel="icon" type="image/png">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
   <!-- Icons -->
   <link rel="stylesheet" href="{% static 'css/nucleo.css' %}">
   <link rel="stylesheet" href="{% static 'css/all.min.css.css' %}">
-  <!--
-  <link href="./assets/js/plugins/nucleo/css/nucleo.css" rel="stylesheet" />
-  <link href="./assets/js/plugins/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet" /> -->
-
-  <!-- CSS Files -->
+  <!-- Argon CSS -->
   <link rel="stylesheet" href="{% static 'css/argon-dashboard.css' %}">
-  <!--<link href="./assets/css/argon-dashboard.css?v=1.1.2" rel="stylesheet" />-->
+  <style>
+    .navbar-vertical .navbar-brand {
+      padding-top: 0.5rem !important; 
+      padding-bottom: 0.5rem !important;
+      margin: 0 !important; /* 필요시 */
+    }
+    .navbar-vertical .navbar-brand-img {
+      max-height: 6rem !important; 
+      height: auto !important;
+      width: auto !important;
+      margin: 0 !important; /* 필요시 */
+    }
+  </style>
+  
 </head>
 
 <body class="">
+  <!-- 사이드바 -->
   <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white" id="sidenav-main">
     <div class="container-fluid">
-      <!-- 토글 -->
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidenav-collapse-main" aria-controls="sidenav-main" aria-expanded="false" aria-label="Toggle navigation">
+      <!-- 토글(모바일) -->
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidenav-collapse-main">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <!-- Brand -->
-      <a class="navbar-brand pt-0" href="{% url 'board_dev' %}"> <!-- 주소 어떻게 할지 생각해보기 -->
+      <!-- 브랜드 로고 -->
+      <a class="navbar-brand pt-0" href="{% url 'board_dev' %}">
         <img src="{% static 'img/mega.png' %}" class="navbar-brand-img" alt="MeGA">
       </a>
-      <!-- User -->
+
+      <!-- 모바일 화면 User -->
       <ul class="nav align-items-center d-md-none">
         <li class="nav-item dropdown">
-          <a class="nav-link nav-link-icon" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="ni ni-bell-55"></i>
-          </a>
-          <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-right" aria-labelledby="navbar-default_dropdown_1">
-            <a class="dropdown-item" href="#">Action</a>
-            <a class="dropdown-item" href="#">Another action</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">Something else here</a>
-          </div>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {% if user.is_authenticated %}
+          <a class="nav-link" href="#" role="button" data-toggle="dropdown">
             <div class="media align-items-center">
               <span class="avatar avatar-sm rounded-circle">
-                <img alt="Image placeholder" src="./assets/img/theme/team-1-800x800.jpg">
+                <img alt="Image placeholder" src="{{ user.socialaccount_set.first.get_avatar_url|default:'your_default_image_url' }}">
               </span>
             </div>
           </a>
           <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-right">
-            <div class=" dropdown-header noti-title">
+            <div class="dropdown-header noti-title">
               <h6 class="text-overflow m-0">Welcome!</h6>
             </div>
             <a href="./examples/profile.html" class="dropdown-item">
               <i class="ni ni-single-02"></i>
-              <span>My profile</span>
-            </a>
-            <a href="./examples/profile.html" class="dropdown-item">
-              <i class="ni ni-settings-gear-65"></i>
-              <span>Settings</span>
-            </a>
-            <a href="./examples/profile.html" class="dropdown-item">
-              <i class="ni ni-calendar-grid-58"></i>
-              <span>Activity</span>
-            </a>
-            <a href="./examples/profile.html" class="dropdown-item">
-              <i class="ni ni-support-16"></i>
-              <span>Support</span>
+              <span>{{ user.get_full_name|default:user.username }}</span>
             </a>
             <div class="dropdown-divider"></div>
-            <a href="#!" class="dropdown-item">
+            <a href="{% url 'logout' %}" class="dropdown-item">
               <i class="ni ni-user-run"></i>
               <span>Logout</span>
             </a>
+            {% endif %}
           </div>
         </li>
       </ul>
 
-      <!-- Collapse -->
+      <!-- 사이드바 메뉴 -->
       <div class="collapse navbar-collapse" id="sidenav-collapse-main">
-        <!-- Collapse header -->
         <div class="navbar-collapse-header d-md-none">
           <div class="row">
             <div class="col-6 collapse-brand">
-              <a href="./index.html">
-                <img src="./assets/img/brand/blue.png">
+              <a href="{% url 'board_dev' %}">
+                <img src="{% static 'img/mega.png' %}">
               </a>
             </div>
             <div class="col-6 collapse-close">
-              <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#sidenav-collapse-main" aria-controls="sidenav-main" aria-expanded="false" aria-label="Toggle sidenav">
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidenav-collapse-main">
                 <span></span>
                 <span></span>
               </button>
             </div>
           </div>
         </div>
-        <!-- Form -->
+        <!-- Search (모바일) -->
         <form class="mt-4 mb-3 d-md-none">
           <div class="input-group input-group-rounded input-group-merge">
-            <input type="search" class="form-control form-control-rounded form-control-prepended" placeholder="Search" aria-label="Search">
+            <input class="form-control form-control-rounded form-control-prepended" placeholder="Search" type="search">
             <div class="input-group-prepend">
               <div class="input-group-text">
                 <span class="fa fa-search"></span>
@@ -117,501 +99,287 @@
             </div>
           </div>
         </form>
-        <!-- Navigation -->
+        <!-- 네비게이션 메뉴 -->
         <ul class="navbar-nav">
-          <li class="nav-item  active ">
-            <a class="nav-link  active " href="{% url 'board_dev' %}">
-              <i class="ni ni-tv-2 text-primary"></i> 개발부
-            </a>
-          </li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_dev' %}"><i class="ni ni-tv-2 text-primary"></i> 개발부</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_marketing' %}"><i class="ni ni-pin-3 text-orange"></i> 마케팅부</a></li>
+          <li class="nav-item active"><a class="nav-link active" href="{% url 'board_sales' %}"><i class="ni ni-single-02 text-yellow"></i> 영업부</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_support' %}"><i class="ni ni-bullet-list-67 text-red"></i> 지원부</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_accounting' %}"><i class="ni ni-key-25 text-info"></i> 재무부</a></li>
+          <hr class="my-3">
           <li class="nav-item">
-            <a class="nav-link " href="{% url 'board_marketing' %}">
-              <i class="ni ni-pin-3 text-orange"></i> 마케팅부
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link " href="{% url 'board_sales' %}">
-              <i class="ni ni-single-02 text-yellow"></i> 영업부
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link " href="{% url 'board_support' %}">
-              <i class="ni ni-bullet-list-67 text-red"></i> 지원부
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'board_accounting' %}">
-              <i class="ni ni-key-25 text-info"></i> 재무부
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'board_hr' %}">
-              <i class="ni ni-circle-08 text-pink"></i> 인사부
-            </a>
-          </li>
-        </ul>
-        <!-- Divider -->
-        <hr class="my-3">
-        <!-- Heading -->
-        <h6 class="navbar-heading text-muted">Documentation</h6>
-        <!-- Navigation -->
-        <ul class="navbar-nav mb-md-3">
-          <li class="nav-item">
-            <a class="nav-link" href="https://demos.creative-tim.com/argon-dashboard/docs/getting-started/overview.html">
-              <i class="ni ni-spaceship"></i> Getting started
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="https://demos.creative-tim.com/argon-dashboard/docs/foundation/colors.html">
-              <i class="ni ni-palette"></i> Foundation
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="https://demos.creative-tim.com/argon-dashboard/docs/components/alerts.html">
-              <i class="ni ni-ui-04"></i> Components
-            </a>
-          </li>
-        </ul>
-        <ul class="navbar-nav">
-          <li class="nav-item active active-pro">
-            <a class="nav-link" href="./examples/upgrade.html">
-              <i class="ni ni-send text-dark"></i> Upgrade to PRO
-            </a>
+            <a class="nav-link" href="{% url 'board_calendar' %}"><i class="ni ni-circle-08 text-pink"></i> 캘린더</a>
           </li>
         </ul>
       </div>
     </div>
   </nav>
+
+  <!-- 메인 콘텐츠 -->
   <div class="main-content">
-    <!-- Navbar -->
+    <!-- 상단 Navbar -->
     <nav class="navbar navbar-top navbar-expand-md navbar-dark" id="navbar-main">
       <div class="container-fluid">
-        <!-- Brand -->
-        <a class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" href="./index.html">Dashboard</a>
-        <!-- Form -->
-        <form class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
-          <div class="form-group mb-0">
-            <div class="input-group input-group-alternative">
-              <div class="input-group-prepend">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-              </div>
-              <input class="form-control" placeholder="Search" type="text">
-            </div>
-          </div>
-        </form>
-        <!-- User -->
+        <a class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" href="#">Dashboard</a>
         <ul class="navbar-nav align-items-center d-none d-md-flex">
+          {% if user.is_authenticated %}
           <li class="nav-item dropdown">
-            <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown">
               <div class="media align-items-center">
                 <span class="avatar avatar-sm rounded-circle">
-                  <img alt="Image placeholder" src="./assets/img/theme/team-4-800x800.jpg">
+                  <img alt="Image placeholder" src="{{ user.socialaccount_set.first.get_avatar_url|default:'your_default_image_url' }}">
                 </span>
                 <div class="media-body ml-2 d-none d-lg-block">
-                  <span class="mb-0 text-sm  font-weight-bold">Jessica Jones</span>
+                  <span class="mb-0 text-sm font-weight-bold">{{ user.get_full_name|default:user.username }}</span>
                 </div>
               </div>
             </a>
             <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-right">
-              <div class=" dropdown-header noti-title">
+              <div class="dropdown-header noti-title">
                 <h6 class="text-overflow m-0">Welcome!</h6>
               </div>
               <a href="./examples/profile.html" class="dropdown-item">
                 <i class="ni ni-single-02"></i>
                 <span>My profile</span>
               </a>
-              <a href="./examples/profile.html" class="dropdown-item">
-                <i class="ni ni-settings-gear-65"></i>
-                <span>Settings</span>
-              </a>
-              <a href="./examples/profile.html" class="dropdown-item">
-                <i class="ni ni-calendar-grid-58"></i>
-                <span>Activity</span>
-              </a>
-              <a href="./examples/profile.html" class="dropdown-item">
-                <i class="ni ni-support-16"></i>
-                <span>Support</span>
-              </a>
               <div class="dropdown-divider"></div>
-              <a href="#!" class="dropdown-item">
+              <a href="{% url 'logout' %}" class="dropdown-item">
                 <i class="ni ni-user-run"></i>
                 <span>Logout</span>
               </a>
             </div>
           </li>
+          {% endif %}
         </ul>
       </div>
     </nav>
-    <!-- End Navbar -->
-    <!-- Header -->
-    <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
-      <div class="container-fluid">
-        <div class="header-body">
-          <!-- Card stats -->
-          <div class="row">
-            <div class="col-xl-3 col-lg-6">
-              <div class="card card-stats mb-4 mb-xl-0">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-                      <h5 class="card-title text-uppercase text-muted mb-0">Traffic</h5>
-                      <span class="h2 font-weight-bold mb-0">350,897</span>
-                    </div>
-                    <div class="col-auto">
-                      <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
-                        <i class="fas fa-chart-bar"></i>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="mt-3 mb-0 text-muted text-sm">
-                    <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> 3.48%</span>
-                    <span class="text-nowrap">Since last month</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-xl-3 col-lg-6">
-              <div class="card card-stats mb-4 mb-xl-0">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-                      <h5 class="card-title text-uppercase text-muted mb-0">New users</h5>
-                      <span class="h2 font-weight-bold mb-0">2,356</span>
-                    </div>
-                    <div class="col-auto">
-                      <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                        <i class="fas fa-chart-pie"></i>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="mt-3 mb-0 text-muted text-sm">
-                    <span class="text-danger mr-2"><i class="fas fa-arrow-down"></i> 3.48%</span>
-                    <span class="text-nowrap">Since last week</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-xl-3 col-lg-6">
-              <div class="card card-stats mb-4 mb-xl-0">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-                      <h5 class="card-title text-uppercase text-muted mb-0">Sales</h5>
-                      <span class="h2 font-weight-bold mb-0">924</span>
-                    </div>
-                    <div class="col-auto">
-                      <div class="icon icon-shape bg-yellow text-white rounded-circle shadow">
-                        <i class="fas fa-users"></i>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="mt-3 mb-0 text-muted text-sm">
-                    <span class="text-warning mr-2"><i class="fas fa-arrow-down"></i> 1.10%</span>
-                    <span class="text-nowrap">Since yesterday</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-xl-3 col-lg-6">
-              <div class="card card-stats mb-4 mb-xl-0">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-                      <h5 class="card-title text-uppercase text-muted mb-0">Performance</h5>
-                      <span class="h2 font-weight-bold mb-0">49,65%</span>
-                    </div>
-                    <div class="col-auto">
-                      <div class="icon icon-shape bg-info text-white rounded-circle shadow">
-                        <i class="fas fa-percent"></i>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="mt-3 mb-0 text-muted text-sm">
-                    <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> 12%</span>
-                    <span class="text-nowrap">Since last month</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+
+    <!-- 헤더 -->
+    <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8"></div>
+
     <div class="container-fluid mt--7">
+      <!-- 주별 질문 통계 -->
       <div class="row">
-        <div class="col-xl-8 mb-5 mb-xl-0">
+        <div class="col-xl-5 mb-5">
           <div class="card bg-gradient-default shadow">
             <div class="card-header bg-transparent">
-              <div class="row align-items-center">
-                <div class="col">
-                  <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
-                  <h2 class="text-white mb-0">Sales value</h2>
-                </div>
-                <div class="col">
-                  <ul class="nav nav-pills justify-content-end">
-                    <li class="nav-item mr-2 mr-md-0" data-toggle="chart" data-target="#chart-sales" data-update='{"data":{"datasets":[{"data":[0, 20, 10, 30, 15, 40, 20, 60, 60]}]}}' data-prefix="$" data-suffix="k">
-                      <a href="#" class="nav-link py-2 px-3 active" data-toggle="tab">
-                        <span class="d-none d-md-block">Month</span>
-                        <span class="d-md-none">M</span>
-                      </a>
-                    </li>
-                    <li class="nav-item" data-toggle="chart" data-target="#chart-sales" data-update='{"data":{"datasets":[{"data":[0, 20, 5, 25, 10, 30, 15, 40, 40]}]}}' data-prefix="$" data-suffix="k">
-                      <a href="#" class="nav-link py-2 px-3" data-toggle="tab">
-                        <span class="d-none d-md-block">Week</span>
-                        <span class="d-md-none">W</span>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+              <h6 class="text-uppercase text-light ls-1 mb-1">개발부</h6>
+              <h2 class="text-white mb-0">주별 질문 통계</h2>
             </div>
             <div class="card-body">
-              <!-- Chart -->
               <div class="chart">
-                <!-- Chart wrapper -->
-                <canvas id="chart-sales" class="chart-canvas"></canvas>
+                <canvas id="myChart" width="400" height="200"></canvas>
               </div>
             </div>
           </div>
         </div>
+
+
+        <!-- 월별 키워드 Top5 (Polar Chart) -->
+        <div class="col-xl-3">
+          <div class="card shadow">
+            <div class="card-header bg-transparent">
+              <!-- 첫째 줄 -->
+              <h6 class="text-uppercase text-muted ls-1 mb-1">월별</h6>
+        
+              <!-- 둘째 줄: h2 + 버튼들 한 줄 -->
+              <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">질문 키워드 TOP5</h2>
+                <div class="d-flex align-items-center">
+                  <!-- 이전달 버튼 -->
+                  <a
+                    href="?kyear={{ k_prev_year }}&kmonth={{ k_prev_month }}"
+                    class="btn btn-sm btn-outline-primary mr-2"
+                  >
+                    &lt;
+                  </a>
+                  
+                  <span class="mx-1 text-primary" style="font-weight:600;">
+                    {{ kmonth }}월
+                  </span>
+        
+                  {% if next_k_disabled %}
+                    <button class="btn btn-sm btn-outline-secondary ml-2" disabled>&gt;</button>
+                  {% else %}
+                    <a
+                      href="?kyear={{ k_next_year }}&kmonth={{ k_next_month }}"
+                      class="btn btn-sm btn-outline-primary ml-2"
+                    >
+                      &gt;
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+        
+            <div class="card-body">
+              <div class="chart">
+                <canvas id="keywordPolarChart" width="300" height="300"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+
+        <!-- 반려 질문 목록 -->
         <div class="col-xl-4">
           <div class="card shadow">
             <div class="card-header bg-transparent">
-              <div class="row align-items-center">
-                <div class="col">
-                  <h6 class="text-uppercase text-muted ls-1 mb-1">Performance</h6>
-                  <h2 class="mb-0">Total orders</h2>
-                </div>
-              </div>
+              <h6 class="text-uppercase text-muted ls-1 mb-1">{{ this_year }}-{{ this_month }}</h6>
+              <h2 class="mb-0">반려 질문 목록</h2>
             </div>
-            <div class="card-body">
-              <!-- Chart -->
-              <div class="chart">
-                <canvas id="chart-orders" class="chart-canvas"></canvas>
+            <div class="card-body" style="height:400px; overflow-y:auto;">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr><th style="width:40px;">#</th><th>Question</th></tr>
+                  </thead>
+                  <tbody>
+                    {% for item in rejected_questions %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td style="white-space: pre-line; line-height:1.2;">{{ item.question }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="2">이번 달 반려 질문이 없습니다.</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- 인사현황 테이블 -->
       <div class="row mt-5">
-        <div class="col-xl-8 mb-5 mb-xl-0">
+        <div class="col-xl-12">
           <div class="card shadow">
-            <div class="card-header border-0">
-              <div class="row align-items-center">
-                <div class="col">
-                  <h3 class="mb-0">Page visits</h3>
-                </div>
-                <div class="col text-right">
-                  <a href="#!" class="btn btn-sm btn-primary">See all</a>
-                </div>
+            <div class="card-header border-0 d-flex justify-content-between">
+              <h2>개발부 인사현황</h2>
+              <div style="width: 300px;">
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="사번 또는 이름 검색">
               </div>
             </div>
             <div class="table-responsive">
-              <!-- Projects table -->
-              <table class="table align-items-center table-flush">
+              <table class="table align-items-center table-flush" id="employeeTable">
                 <thead class="thead-light">
                   <tr>
-                    <th scope="col">Page name</th>
-                    <th scope="col">Visitors</th>
-                    <th scope="col">Unique users</th>
-                    <th scope="col">Bounce rate</th>
+                    <th>ID</th><th>Name</th><th>Team</th><th>Role</th><th>Contact</th><th>Email</th>
+                    <th data-sort-col="7" data-order="none" onclick="toggleDescSort(event)">Tardies_Month ▼</th>
+                    <th data-sort-col="8" data-order="none" onclick="toggleDescSort(event)">Tardies ▼</th>
+                    <th data-sort-col="9" data-order="none" onclick="toggleDescSort(event)">Absences ▼</th>
+                    <th data-sort-col="10" data-order="none" onclick="toggleDescSort(event)">Leave_Left ▼</th>
+                    <th>Total_Leave</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {% for row in page_obj %}
                   <tr>
-                    <th scope="row">
-                      /argon/
-                    </th>
-                    <td>
-                      4,569
-                    </td>
-                    <td>
-                      340
-                    </td>
-                    <td>
-                      <i class="fas fa-arrow-up text-success mr-3"></i> 46,53%
-                    </td>
+                    <td>{{ row.employee_id }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.team_id }}</td>
+                    <td>{{ row.rank }}</td>
+                    <td>{{ row.phone_number }}</td>
+                    <td>{{ row.email }}</td>
+                    <td class="text-center">{{ row.monthly_late_days }}</td>
+                    <td class="text-center">{{ row.total_late_days }}</td>
+                    <td class="text-center">{{ row.total_absence_days }}</td>
+                    <td class="text-center">{{ row.remaining_annual_leave }}</td>
+                    <td class="text-center">{{ row.total_annual_leave }}</td>
                   </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/index.html
-                    </th>
-                    <td>
-                      3,985
-                    </td>
-                    <td>
-                      319
-                    </td>
-                    <td>
-                      <i class="fas fa-arrow-down text-warning mr-3"></i> 46,53%
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/charts.html
-                    </th>
-                    <td>
-                      3,513
-                    </td>
-                    <td>
-                      294
-                    </td>
-                    <td>
-                      <i class="fas fa-arrow-down text-warning mr-3"></i> 36,49%
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/tables.html
-                    </th>
-                    <td>
-                      2,050
-                    </td>
-                    <td>
-                      147
-                    </td>
-                    <td>
-                      <i class="fas fa-arrow-up text-success mr-3"></i> 50,87%
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/profile.html
-                    </th>
-                    <td>
-                      1,795
-                    </td>
-                    <td>
-                      190
-                    </td>
-                    <td>
-                      <i class="fas fa-arrow-down text-danger mr-3"></i> 46,53%
-                    </td>
-                  </tr>
+                  {% endfor %}
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-        <div class="col-xl-4">
-          <div class="card shadow">
-            <div class="card-header border-0">
-              <div class="row align-items-center">
-                <div class="col">
-                  <h3 class="mb-0">Social traffic</h3>
-                </div>
-                <div class="col text-right">
-                  <a href="#!" class="btn btn-sm btn-primary">See all</a>
-                </div>
+
+              <!-- 페이지네이션 -->
+              <div class="d-flex justify-content-center mt-3">
+                <nav aria-label="Page navigation example">
+                  <ul class="pagination justify-content-center">
+
+                    <!-- 이전 버튼 -->
+                    {% if page_obj.has_previous %}
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                    {% endif %}
+
+                    {% for i in page_obj.paginator.page_range %}
+                      <!-- 첫 페이지 또는 마지막 페이지 -->
+                      {% if i == 1 or i == page_obj.paginator.num_pages %}
+                        {% if i == page_obj.number %}
+                          <!-- 활성 페이지 -->
+                          <li class="page-item active">
+                            <span class="page-link">{{ i }}</span>
+                          </li>
+                        {% else %}
+                          <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                          </li>
+                        {% endif %}
+
+                      <!-- 현재 페이지 기준 앞뒤 2페이지 범위 -->
+                      {% elif i >= page_obj.number|add:-2 and i <= page_obj.number|add:2 %}
+                        {% if i == page_obj.number %}
+                          <!-- 활성 페이지 -->
+                          <li class="page-item active">
+                            <span class="page-link">{{ i }}</span>
+                          </li>
+                        {% else %}
+                          <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                          </li>
+                        {% endif %}
+
+                      <!-- 2번째 페이지 또는 끝에서 두 번째 페이지 즈음에서 '...' 표시 -->
+                      {% elif i == 2 or i == page_obj.paginator.num_pages|add:-1 %}
+                        <li class="page-item disabled">
+                          <span class="page-link">…</span>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+
+                    <!-- 다음 버튼 -->
+                    {% if page_obj.has_next %}
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                          <span aria-hidden="true">&raquo;</span>
+                        </a>
+                      </li>
+                    {% endif %}
+
+                  </ul>
+                </nav>
               </div>
-            </div>
-            <div class="table-responsive">
-              <!-- Projects table -->
-              <table class="table align-items-center table-flush">
-                <thead class="thead-light">
-                  <tr>
-                    <th scope="col">Referral</th>
-                    <th scope="col">Visitors</th>
-                    <th scope="col"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">
-                      Facebook
-                    </th>
-                    <td>
-                      1,480
-                    </td>
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <span class="mr-2">60%</span>
-                        <div>
-                          <div class="progress">
-                            <div class="progress-bar bg-gradient-danger" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      Facebook
-                    </th>
-                    <td>
-                      5,480
-                    </td>
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <span class="mr-2">70%</span>
-                        <div>
-                          <div class="progress">
-                            <div class="progress-bar bg-gradient-success" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: 70%;"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      Google
-                    </th>
-                    <td>
-                      4,807
-                    </td>
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <span class="mr-2">80%</span>
-                        <div>
-                          <div class="progress">
-                            <div class="progress-bar bg-gradient-primary" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%;"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      Instagram
-                    </th>
-                    <td>
-                      3,678
-                    </td>
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <span class="mr-2">75%</span>
-                        <div>
-                          <div class="progress">
-                            <div class="progress-bar bg-gradient-info" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%;"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      twitter
-                    </th>
-                    <td>
-                      2,645
-                    </td>
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <span class="mr-2">30%</span>
-                        <div>
-                          <div class="progress">
-                            <div class="progress-bar bg-gradient-warning" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style="width: 30%;"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+
             </div>
           </div>
         </div>
       </div>
+
       <!-- Footer -->
       <footer class="footer">
         <div class="row align-items-center justify-content-xl-between">
@@ -622,40 +390,243 @@
           </div>
           <div class="col-xl-6">
             <ul class="nav nav-footer justify-content-center justify-content-xl-end">
-              <li class="nav-item">
-                <a href="https://www.creative-tim.com" class="nav-link" target="_blank">Creative Tim</a>
-              </li>
-              <li class="nav-item">
-                <a href="https://www.creative-tim.com/presentation" class="nav-link" target="_blank">About Us</a>
-              </li>
-              <li class="nav-item">
-                <a href="http://blog.creative-tim.com" class="nav-link" target="_blank">Blog</a>
-              </li>
-              <li class="nav-item">
-                <a href="https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md" class="nav-link" target="_blank">MIT License</a>
-              </li>
+              <li class="nav-item"><a href="https://www.creative-tim.com" class="nav-link" target="_blank">Creative Tim</a></li>
+              <li class="nav-item"><a href="https://www.creative-tim.com/presentation" class="nav-link" target="_blank">About Us</a></li>
+              <li class="nav-item"><a href="http://blog.creative-tim.com" class="nav-link" target="_blank">Blog</a></li>
+              <li class="nav-item"><a href="https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md" class="nav-link" target="_blank">MIT License</a></li>
             </ul>
           </div>
         </div>
       </footer>
     </div>
   </div>
-  <!--   Core   -->
-  <script src="./assets/js/plugins/jquery/dist/jquery.min.js"></script>
-  <script src="./assets/js/plugins/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-  <!--   Optional JS   -->
-  <script src="./assets/js/plugins/chart.js/dist/Chart.min.js"></script>
-  <script src="./assets/js/plugins/chart.js/dist/Chart.extension.js"></script>
-  <!--   Argon JS   -->
-  <script src="./assets/js/argon-dashboard.min.js?v=1.1.2"></script>
-  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
-  <script>
-    window.TrackJS &&
-      TrackJS.install({
-        token: "ee6fab19c5a04ac1a32a645abde4613a",
-        application: "argon-dashboard-free"
-      });
-  </script>
-</body>
 
+  <!-- Core JS -->
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      Dropdown();
+      Collapse("#sidenav-collapse-main");
+    });
+  </script>
+
+  
+<!-- 부서별 직원테이블블 -->
+<script>
+  // 간단한 디바운스 함수
+  function debounce(fn, delay = 300) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const tableBody = document.querySelector("#employeeTable tbody");
+    const tableRows = tableBody.querySelectorAll("tr");
+
+    // 실제 검색 필터링 함수
+    function filterTable() {
+      const query = searchInput.value.trim().toLowerCase();
+
+      // 각 행을 반복하면서, 사번(ID) 또는 이름(Name) 부분일치 검사
+      tableRows.forEach((row) => {
+        const idCell = row.querySelector("td:nth-child(1)").textContent.toLowerCase();   // 첫 번째 칸 (ID)
+        const nameCell = row.querySelector("td:nth-child(2)").textContent.toLowerCase(); // 두 번째 칸 (Name)
+
+        // 부분 일치 (indexOf != -1) => 표시, 아니면 숨김
+        if (idCell.includes(query) || nameCell.includes(query)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    // 디바운싱 적용
+    const debouncedFilter = debounce(filterTable, 300);
+
+    // input 이벤트마다 디바운싱된 검색 함수 호출
+    searchInput.addEventListener("input", debouncedFilter);
+  });
+</script>
+
+<!-- 내림차순 정렬 -->
+<script>
+  // 전역 배열: "처음 로드된" 순서를 저장 (복원용)
+  let originalRows = [];
+  
+  document.addEventListener("DOMContentLoaded", () => {
+    const table = document.getElementById("employeeTable");
+    const tbody = table.querySelector("tbody");
+    
+    // 초기 순서 보관
+    originalRows = Array.from(tbody.querySelectorAll("tr"));
+  });
+  
+  // 칼럼 헤더(▼) 클릭 시: 내림차순 정렬 ↔ 원래 상태 복원
+  function toggleDescSort(event) {
+    const th = event.currentTarget;            // 클릭한 <th>
+    const colIndex = parseInt(th.dataset.sortCol, 10);
+    const currentOrder = th.dataset.order;     // "none" or "desc"
+    
+    const table = document.getElementById("employeeTable");
+    const tbody = table.querySelector("tbody");
+  
+    // 만약 현재 정렬 상태가 none → "desc"로 변경 (내림차순 정렬)
+    if (currentOrder === "none") {
+      // 1) 다른 칼럼들 정렬 상태/스타일도 초기화
+      resetAllThStyles(table, th);
+      
+      // 2) 행들을 내림차순 정렬
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      rows.sort((a, b) => {
+        const cellA = a.querySelector(`td:nth-child(${colIndex})`).textContent.trim();
+        const cellB = b.querySelector(`td:nth-child(${colIndex})`).textContent.trim();
+        
+        const valA = parseFloat(cellA) || 0;
+        const valB = parseFloat(cellB) || 0;
+        return valB - valA; // 내림차순
+      });
+  
+      rows.forEach(r => tbody.appendChild(r));
+  
+      // 3) 이번 칼럼만 "desc"로 표시, 글자 굵게
+      th.dataset.order = "desc";
+      th.style.color = "black";
+  
+    } else {
+      // 현재 정렬 상태가 "desc" → "none"으로 (원래 상태 복원)
+  
+      // 1) this 칼럼 상태 초기화
+      th.dataset.order = "none";
+      th.style.color = "";
+  
+      // 2) 테이블을 초기 순서로 복원
+      originalRows.forEach(row => tbody.appendChild(row));
+    }
+  }
+  
+  // 다른 칼럼을 눌렀을 때, 이전 칼럼의 표시를 해제하는 헬퍼함수
+  function resetAllThStyles(table, exceptThisTh) {
+    const allTh = table.querySelectorAll("thead th[data-order]");
+    allTh.forEach(th => {
+      if (th !== exceptThisTh) {
+        // 상태를 none으로
+        th.dataset.order = "none";
+        // 폰트 굵기 해제
+        th.style.fontWeight = "";
+      }
+    });
+  }
+  </script>
+  
+  
+<!-- ########## -->
+<!-- chart JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="text/javascript">
+  // Django 템플릿 변수 -> 자바스크립트
+  var labels = {{ labels|safe }};
+  var teamQuestions = {{ team_questions|safe }};
+  var otherQuestions = {{ other_questions|safe }};
+
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  const myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,  
+      datasets: [
+        {
+          label: '개발부 질문 수',
+          data: teamQuestions,
+          backgroundColor: 'rgba(255, 99, 132, 0.7)',
+          stack: 'questions',  // 스택 그룹 이름
+        },
+        {
+          label: '기타 질문 수',
+          data: otherQuestions,
+          backgroundColor: 'rgba(54, 162, 235, 0.7)',
+          stack: 'questions',  // 같은 스택 그룹
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          stacked: true   // X축 스택 설정
+        },
+        y: {
+          stacked: true,  // Y축 스택 설정
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+<!--월별TOP5-->
+<script>
+// Django 템플릿 변수를 자바스크립트 배열로 받기
+var polarLabels = {{ keyword_labels|safe }};   // 예: ["특별휴가","사유","연차","회사","기타"]
+var polarValues = {{ keyword_values|safe }};   // 예: [10,8,6,5,3]
+
+// 문서 로드 후 Chart.js로 Polar Area 차트 생성
+document.addEventListener("DOMContentLoaded", function() {
+  const ctxPolar = document.getElementById('keywordPolarChart').getContext('2d');
+
+  const polarChart = new Chart(ctxPolar, {
+    type: 'polarArea',
+    data: {
+      labels: polarLabels,
+      datasets: [{
+        label: 'Keyword Frequency',
+        data: polarValues,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.5)',
+          'rgba(54, 162, 235, 0.5)',
+          'rgba(255, 206, 86, 0.5)',
+          'rgba(75, 192, 192, 0.5)',
+          'rgba(153, 102, 255, 0.5)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      // Chart.js >= 3.x syntax
+      scales: {
+        r: {
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'right', // 예: 범례 위치
+        }
+      }
+    }
+  });
+});
+</script>
+
+
+<!--   Optional JS   -->
+<script src="./assets/js/plugins/chart.js/dist/Chart.min.js"></script>
+<script src="./assets/js/plugins/chart.js/dist/Chart.extension.js"></script>
+<!--   Argon JS   -->
+<script src="./assets/js/argon-dashboard.min.js?v=1.1.2"></script>
+<script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+<script>
+  window.TrackJS &&
+    TrackJS.install({
+      token: "ee6fab19c5a04ac1a32a645abde4613a",
+      application: "argon-dashboard-free"
+    });
+</script>
+</body>
 </html>

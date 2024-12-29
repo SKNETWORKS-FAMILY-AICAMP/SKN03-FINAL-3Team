@@ -1,20 +1,120 @@
+{% load static %}
 {% load socialaccount %}
+<!--
 
+=========================================================
+* Argon Dashboard - v1.1.2
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/argon-dashboard
+* Copyright 2020 Creative Tim
+* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md)
+
+* Coded by Creative Tim
+
+=========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-</head>
-<body>
-    <div class="login-container">
-        <h1>Sign In with Google</h1>
 
-        <!-- 구글 로그인 버튼 -->
-        <a href="{% provider_login_url 'google' %}" class="social-btn google-btn">
-            <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" alt="Google Sign-In">
-        </a>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>MeGA 로그인</title>
+  <!-- Favicon -->
+  <link href="{% static 'img/mega.png' %}" rel="icon" type="image/png">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+  <!-- Icons -->
+  <link href="{% static 'css/nucleo.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/all.min.css' %}" rel="stylesheet" />
+  <!-- CSS Files -->
+  <link href="{% static 'css/argon-dashboard.css' %}" rel="stylesheet" />
+
+  <style>
+    /* 1) Argon에서 기본 사용하는 .bg-gradient-primary를 단색으로 강제 오버라이드 */
+    .header.bg-gradient-primary {
+      background-color: #dee6ef !important; /* 원하는 색상 */
+      background-image: none !important;    /* 그라데이션 이미지 제거 */
+    }
+
+    /* 2) 물결 SVG의 fill을 동일 색상으로 맞춤 */
+    .fill-default {
+      fill: #dee6ef !important;
+    }
+
+    /* 3) body.bg-default의 배경색도 동일하게 지정 */
+    body.bg-default {
+      background-color:  #dee6ef !important;
+    }
+  </style>
+</head>
+
+<body class="bg-default">
+  <div class="main-content">
+
+    <!-- Header -->
+    <!-- py-7 py-lg-8: 높이(패딩)를 조절할 수 있음. -->
+    <div class="header bg-gradient-primary py-7 py-lg-8">
+      <!-- (필요하면 여기 안에 'Welcome!' 등 텍스트를 배치할 수 있음) -->
+      <div class="separator separator-bottom separator-skew zindex-100">
+        <svg x="0" y="0" viewBox="0 0 2560 100"
+             preserveAspectRatio="none"
+             version="1.1"
+             xmlns="http://www.w3.org/2000/svg">
+          <!-- fill-default를 위에서 #1A73E8로 지정했으므로 보이지 않고 하나로 이어짐 -->
+          <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
+        </svg>
+      </div>
     </div>
+    
+    <!-- Page content -->
+    <div class="container mt--8 pb-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+          <!-- 로그인 카드 -->
+          <div class="card bg-secondary shadow border-0">
+            <div class="card-header bg-transparent pb-8">
+              <!-- 로고 -->
+              <p class="text-center">
+                <img src="{% static 'img/mega_remove.png' %}"
+                     alt="MeGa Logo"
+                     class="img-fluid my-2"
+                     style="max-width: 150px;">
+              </p>
+              <!-- 안내 문구 -->
+              <div class="text-muted text-center mt-2 mb-3">
+                <small>Sign in with</small>
+              </div>
+              <div class="btn-wrapper text-center">
+                <!-- 구글 로그인 -->
+                <a href="{% provider_login_url 'google' %}" class="btn btn-neutral btn-icon">
+                  <span class="btn-inner--icon">
+                    <img src="{% static 'img/google.png' %}" alt="Google Sign-In">
+                  </span>
+                  <span class="btn-inner--text">Google</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- 필요하면 아래 주석 해제
+            <div class="card-body px-lg-5 py-lg-5">
+              ...
+            </div>
+            -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- Core JS -->
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+  <!-- Argon JS -->
+  <script src="../assets/js/argon-dashboard.min.js?v=1.1.2"></script>
 </body>
+
 </html>
