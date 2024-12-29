@@ -100,9 +100,9 @@
         </form>
         <!-- 네비게이션 메뉴 -->
         <ul class="navbar-nav">
-          <li class="nav-item active"><a class="nav-link active" href="{% url 'board_dev' %}">
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_dev' %}">
             <i class="ni ni-tv-2 text-primary"></i> 개발부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_marketing' %}">
+          <li class="nav-item active"><a class="nav-link active" href="{% url 'board_marketing' %}">
             <i class="ni ni-pin-3 text-orange"></i> 마케팅부</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'board_sales' %}">
             <i class="ni ni-single-02 text-yellow"></i> 영업부</a></li>
@@ -171,7 +171,7 @@
         <div class="col-xl-5 mb-5">
           <div class="card bg-gradient-default shadow">
             <div class="card-header bg-transparent">
-              <h6 class="text-uppercase text-light ls-1 mb-1">개발부</h6>
+              <h6 class="text-uppercase text-light ls-1 mb-1">마케팅부</h6>
               <h2 class="text-white mb-0">주별 질문 통계</h2>
             </div>
             <div class="card-body">
@@ -267,7 +267,7 @@
         <div class="col-xl-12">
           <div class="card shadow">
             <div class="card-header border-0 d-flex justify-content-between">
-              <h2>개발부 인사현황</h2>
+              <h2>마케팅부 인사현황</h2>
               <div style="width: 300px;">
                 <input type="text" id="searchInput" class="form-control form-control-sm"
                        placeholder="사번 또는 이름 검색">
@@ -511,7 +511,7 @@
         labels: labels,
         datasets: [
           {
-            label: '개발부 질문 수',
+            label: '마케팅부 질문 수',
             data: teamQuestions,
             backgroundColor: 'rgba(255, 99, 132, 0.7)',
             stack: 'questions',
