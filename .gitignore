@@ -14,8 +14,12 @@ db.sqlite3
 **/migrations/*.pyc
 !**/migrations/__init__.pyc
 
+.env
+
 .venv
 venv/
 .venv/
 
 credentials.json
+
+.DS_Store
