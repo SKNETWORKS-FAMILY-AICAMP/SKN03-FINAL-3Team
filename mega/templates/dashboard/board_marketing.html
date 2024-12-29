@@ -17,16 +17,15 @@
     .navbar-vertical .navbar-brand {
       padding-top: 0.5rem !important; 
       padding-bottom: 0.5rem !important;
-      margin: 0 !important; /* 필요시 */
+      margin: 0 !important;
     }
     .navbar-vertical .navbar-brand-img {
       max-height: 6rem !important; 
       height: auto !important;
       width: auto !important;
-      margin: 0 !important; /* 필요시 */
+      margin: 0 !important;
     }
   </style>
-  
 </head>
 
 <body class="">
@@ -66,8 +65,8 @@
               <i class="ni ni-user-run"></i>
               <span>Logout</span>
             </a>
-            {% endif %}
           </div>
+          {% endif %}
         </li>
       </ul>
 
@@ -101,14 +100,21 @@
         </form>
         <!-- 네비게이션 메뉴 -->
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_dev' %}"><i class="ni ni-tv-2 text-primary"></i> 개발부</a></li>
-          <li class="nav-item active"><a class="nav-link active" href="{% url 'board_marketing' %}"><i class="ni ni-pin-3 text-orange"></i> 마케팅부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_sales' %}"><i class="ni ni-single-02 text-yellow"></i> 영업부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_support' %}"><i class="ni ni-bullet-list-67 text-red"></i> 지원부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_accounting' %}"><i class="ni ni-key-25 text-info"></i> 재무부</a></li>
+          <li class="nav-item active"><a class="nav-link active" href="{% url 'board_dev' %}">
+            <i class="ni ni-tv-2 text-primary"></i> 개발부</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_marketing' %}">
+            <i class="ni ni-pin-3 text-orange"></i> 마케팅부</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_sales' %}">
+            <i class="ni ni-single-02 text-yellow"></i> 영업부</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_support' %}">
+            <i class="ni ni-bullet-list-67 text-red"></i> 지원부</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_accounting' %}">
+            <i class="ni ni-key-25 text-info"></i> 재무부</a></li>
           <hr class="my-3">
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'board_calendar' %}"><i class="ni ni-circle-08 text-pink"></i> 캘린더</a>
+            <a class="nav-link" href="{% url 'board_calendar' %}">
+              <i class="ni ni-circle-08 text-pink"></i> 캘린더
+            </a>
           </li>
         </ul>
       </div>
@@ -130,7 +136,9 @@
                   <img alt="Image placeholder" src="{{ user.socialaccount_set.first.get_avatar_url|default:'your_default_image_url' }}">
                 </span>
                 <div class="media-body ml-2 d-none d-lg-block">
-                  <span class="mb-0 text-sm font-weight-bold">{{ user.get_full_name|default:user.username }}</span>
+                  <span class="mb-0 text-sm font-weight-bold">
+                    {{ user.get_full_name|default:user.username }}
+                  </span>
                 </div>
               </div>
             </a>
@@ -174,15 +182,13 @@
           </div>
         </div>
 
-
         <!-- 월별 키워드 Top5 (Polar Chart) -->
         <div class="col-xl-3">
           <div class="card shadow">
             <div class="card-header bg-transparent">
               <!-- 첫째 줄 -->
               <h6 class="text-uppercase text-muted ls-1 mb-1">월별</h6>
-        
-              <!-- 둘째 줄: h2 + 버튼들 한 줄 -->
+              <!-- 둘째 줄: h2 + 버튼 한 줄 -->
               <div class="d-flex justify-content-between align-items-center">
                 <h2 class="mb-0">질문 키워드 TOP5</h2>
                 <div class="d-flex align-items-center">
@@ -193,11 +199,9 @@
                   >
                     &lt;
                   </a>
-                  
                   <span class="mx-1 text-primary" style="font-weight:600;">
                     {{ kmonth }}월
                   </span>
-        
                   {% if next_k_disabled %}
                     <button class="btn btn-sm btn-outline-secondary ml-2" disabled>&gt;</button>
                   {% else %}
@@ -211,7 +215,6 @@
                 </div>
               </div>
             </div>
-        
             <div class="card-body">
               <div class="chart">
                 <canvas id="keywordPolarChart" width="300" height="300"></canvas>
@@ -219,33 +222,32 @@
             </div>
           </div>
         </div>
-        
-        
-        
-        
-        
-        
-        
-        
 
         <!-- 반려 질문 목록 -->
         <div class="col-xl-4">
           <div class="card shadow">
             <div class="card-header bg-transparent">
-              <h6 class="text-uppercase text-muted ls-1 mb-1">{{ this_year }}-{{ this_month }}</h6>
+              <h6 class="text-uppercase text-muted ls-1 mb-1">
+                {{ this_year }}-{{ this_month }}
+              </h6>
               <h2 class="mb-0">반려 질문 목록</h2>
             </div>
             <div class="card-body" style="height:400px; overflow-y:auto;">
               <div class="table-responsive">
                 <table class="table">
                   <thead>
-                    <tr><th style="width:40px;">#</th><th>Question</th></tr>
+                    <tr>
+                      <th style="width:40px;">#</th>
+                      <th>Question</th>
+                    </tr>
                   </thead>
                   <tbody>
                     {% for item in rejected_questions %}
                     <tr>
                       <td>{{ forloop.counter }}</td>
-                      <td style="white-space: pre-line; line-height:1.2;">{{ item.question }}</td>
+                      <td style="white-space: pre-line; line-height:1.2;">
+                        {{ item.question }}
+                      </td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -267,18 +269,65 @@
             <div class="card-header border-0 d-flex justify-content-between">
               <h2>개발부 인사현황</h2>
               <div style="width: 300px;">
-                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="사번 또는 이름 검색">
+                <input type="text" id="searchInput" class="form-control form-control-sm"
+                       placeholder="사번 또는 이름 검색">
               </div>
             </div>
             <div class="table-responsive">
               <table class="table align-items-center table-flush" id="employeeTable">
                 <thead class="thead-light">
                   <tr>
-                    <th>ID</th><th>Name</th><th>Team</th><th>Role</th><th>Contact</th><th>Email</th>
-                    <th data-sort-col="7" data-order="none" onclick="toggleDescSort(event)">Tardies_Month ▼</th>
-                    <th data-sort-col="8" data-order="none" onclick="toggleDescSort(event)">Tardies ▼</th>
-                    <th data-sort-col="9" data-order="none" onclick="toggleDescSort(event)">Absences ▼</th>
-                    <th data-sort-col="10" data-order="none" onclick="toggleDescSort(event)">Leave_Left ▼</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Team</th>
+                    <th>Role</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+
+                    <!-- Tardies_Month 정렬 -->
+                    <th>
+                      {% if sort_col == "7" and sort_dir == "desc" %}
+                        <a href="?sort_col=7&sort_dir=asc">Tardies_Month ▼</a>
+                      {% elif sort_col == "7" and sort_dir == "asc" %}
+                        <a href="?sort_col=7&sort_dir=desc">Tardies_Month ▲</a>
+                      {% else %}
+                        <a href="?sort_col=7&sort_dir=desc">Tardies_Month</a>
+                      {% endif %}
+                    </th>
+
+                    <!-- Tardies 정렬 -->
+                    <th>
+                      {% if sort_col == "8" and sort_dir == "desc" %}
+                        <a href="?sort_col=8&sort_dir=asc">Tardies ▼</a>
+                      {% elif sort_col == "8" and sort_dir == "asc" %}
+                        <a href="?sort_col=8&sort_dir=desc">Tardies ▲</a>
+                      {% else %}
+                        <a href="?sort_col=8&sort_dir=desc">Tardies</a>
+                      {% endif %}
+                    </th>
+
+                    <!-- Absences 정렬 -->
+                    <th>
+                      {% if sort_col == "9" and sort_dir == "desc" %}
+                        <a href="?sort_col=9&sort_dir=asc">Absences ▼</a>
+                      {% elif sort_col == "9" and sort_dir == "asc" %}
+                        <a href="?sort_col=9&sort_dir=desc">Absences ▲</a>
+                      {% else %}
+                        <a href="?sort_col=9&sort_dir=desc">Absences</a>
+                      {% endif %}
+                    </th>
+
+                    <!-- Leave_Left 정렬 -->
+                    <th>
+                      {% if sort_col == "10" and sort_dir == "desc" %}
+                        <a href="?sort_col=10&sort_dir=asc">Leave_Left ▼</a>
+                      {% elif sort_col == "10" and sort_dir == "asc" %}
+                        <a href="?sort_col=10&sort_dir=desc">Leave_Left ▲</a>
+                      {% else %}
+                        <a href="?sort_col=10&sort_dir=desc">Leave_Left</a>
+                      {% endif %}
+                    </th>
+
                     <th>Total_Leave</th>
                   </tr>
                 </thead>
@@ -305,11 +354,11 @@
               <div class="d-flex justify-content-center mt-3">
                 <nav aria-label="Page navigation example">
                   <ul class="pagination justify-content-center">
-
                     <!-- 이전 버튼 -->
                     {% if page_obj.has_previous %}
                       <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
+                           aria-label="Previous">
                           <span aria-hidden="true">&laquo;</span>
                         </a>
                       </li>
@@ -325,30 +374,20 @@
                       <!-- 첫 페이지 또는 마지막 페이지 -->
                       {% if i == 1 or i == page_obj.paginator.num_pages %}
                         {% if i == page_obj.number %}
-                          <!-- 활성 페이지 -->
-                          <li class="page-item active">
-                            <span class="page-link">{{ i }}</span>
-                          </li>
+                          <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                         {% else %}
                           <li class="page-item">
                             <a class="page-link" href="?page={{ i }}">{{ i }}</a>
                           </li>
                         {% endif %}
-
-                      <!-- 현재 페이지 기준 앞뒤 2페이지 범위 -->
                       {% elif i >= page_obj.number|add:-2 and i <= page_obj.number|add:2 %}
                         {% if i == page_obj.number %}
-                          <!-- 활성 페이지 -->
-                          <li class="page-item active">
-                            <span class="page-link">{{ i }}</span>
-                          </li>
+                          <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                         {% else %}
                           <li class="page-item">
                             <a class="page-link" href="?page={{ i }}">{{ i }}</a>
                           </li>
                         {% endif %}
-
-                      <!-- 2번째 페이지 또는 끝에서 두 번째 페이지 즈음에서 '...' 표시 -->
                       {% elif i == 2 or i == page_obj.paginator.num_pages|add:-1 %}
                         <li class="page-item disabled">
                           <span class="page-link">…</span>
@@ -359,7 +398,8 @@
                     <!-- 다음 버튼 -->
                     {% if page_obj.has_next %}
                       <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+                           aria-label="Next">
                           <span aria-hidden="true">&raquo;</span>
                         </a>
                       </li>
@@ -370,7 +410,6 @@
                         </a>
                       </li>
                     {% endif %}
-
                   </ul>
                 </nav>
               </div>
@@ -385,15 +424,29 @@
         <div class="row align-items-center justify-content-xl-between">
           <div class="col-xl-6">
             <div class="copyright text-center text-xl-left text-muted">
-              &copy; 2018 <a href="https://www.creative-tim.com" class="font-weight-bold ml-1" target="_blank">Creative Tim</a>
+              &copy; 2018
+              <a href="https://www.creative-tim.com" class="font-weight-bold ml-1" target="_blank">
+                Creative Tim
+              </a>
             </div>
           </div>
           <div class="col-xl-6">
             <ul class="nav nav-footer justify-content-center justify-content-xl-end">
-              <li class="nav-item"><a href="https://www.creative-tim.com" class="nav-link" target="_blank">Creative Tim</a></li>
-              <li class="nav-item"><a href="https://www.creative-tim.com/presentation" class="nav-link" target="_blank">About Us</a></li>
-              <li class="nav-item"><a href="http://blog.creative-tim.com" class="nav-link" target="_blank">Blog</a></li>
-              <li class="nav-item"><a href="https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md" class="nav-link" target="_blank">MIT License</a></li>
+              <li class="nav-item">
+                <a href="https://www.creative-tim.com" class="nav-link" target="_blank">Creative Tim</a>
+              </li>
+              <li class="nav-item">
+                <a href="https://www.creative-tim.com/presentation" class="nav-link" target="_blank">About Us</a>
+              </li>
+              <li class="nav-item">
+                <a href="http://blog.creative-tim.com" class="nav-link" target="_blank">Blog</a>
+              </li>
+              <li class="nav-item">
+                <a href="https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md"
+                   class="nav-link" target="_blank">
+                  MIT License
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -411,222 +464,146 @@
     });
   </script>
 
-  
-<!-- 부서별 직원테이블블 -->
-<script>
-  // 간단한 디바운스 함수
-  function debounce(fn, delay = 300) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => fn.apply(this, args), delay);
-    };
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const searchInput = document.getElementById("searchInput");
-    const tableBody = document.querySelector("#employeeTable tbody");
-    const tableRows = tableBody.querySelectorAll("tr");
-
-    // 실제 검색 필터링 함수
-    function filterTable() {
-      const query = searchInput.value.trim().toLowerCase();
-
-      // 각 행을 반복하면서, 사번(ID) 또는 이름(Name) 부분일치 검사
-      tableRows.forEach((row) => {
-        const idCell = row.querySelector("td:nth-child(1)").textContent.toLowerCase();   // 첫 번째 칸 (ID)
-        const nameCell = row.querySelector("td:nth-child(2)").textContent.toLowerCase(); // 두 번째 칸 (Name)
-
-        // 부분 일치 (indexOf != -1) => 표시, 아니면 숨김
-        if (idCell.includes(query) || nameCell.includes(query)) {
-          row.style.display = "";
-        } else {
-          row.style.display = "none";
-        }
-      });
+  <!-- 검색 (사번,이름) 필터링 -->
+  <script>
+    function debounce(fn, delay = 300) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), delay);
+      };
     }
 
-    // 디바운싱 적용
-    const debouncedFilter = debounce(filterTable, 300);
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById("searchInput");
+      const tableBody = document.querySelector("#employeeTable tbody");
+      const tableRows = tableBody.querySelectorAll("tr");
 
-    // input 이벤트마다 디바운싱된 검색 함수 호출
-    searchInput.addEventListener("input", debouncedFilter);
-  });
-</script>
-
-<!-- 내림차순 정렬 -->
-<script>
-  // 전역 배열: "처음 로드된" 순서를 저장 (복원용)
-  let originalRows = [];
-  
-  document.addEventListener("DOMContentLoaded", () => {
-    const table = document.getElementById("employeeTable");
-    const tbody = table.querySelector("tbody");
-    
-    // 초기 순서 보관
-    originalRows = Array.from(tbody.querySelectorAll("tr"));
-  });
-  
-  // 칼럼 헤더(▼) 클릭 시: 내림차순 정렬 ↔ 원래 상태 복원
-  function toggleDescSort(event) {
-    const th = event.currentTarget;            // 클릭한 <th>
-    const colIndex = parseInt(th.dataset.sortCol, 10);
-    const currentOrder = th.dataset.order;     // "none" or "desc"
-    
-    const table = document.getElementById("employeeTable");
-    const tbody = table.querySelector("tbody");
-  
-    // 만약 현재 정렬 상태가 none → "desc"로 변경 (내림차순 정렬)
-    if (currentOrder === "none") {
-      // 1) 다른 칼럼들 정렬 상태/스타일도 초기화
-      resetAllThStyles(table, th);
-      
-      // 2) 행들을 내림차순 정렬
-      const rows = Array.from(tbody.querySelectorAll("tr"));
-      rows.sort((a, b) => {
-        const cellA = a.querySelector(`td:nth-child(${colIndex})`).textContent.trim();
-        const cellB = b.querySelector(`td:nth-child(${colIndex})`).textContent.trim();
-        
-        const valA = parseFloat(cellA) || 0;
-        const valB = parseFloat(cellB) || 0;
-        return valB - valA; // 내림차순
-      });
-  
-      rows.forEach(r => tbody.appendChild(r));
-  
-      // 3) 이번 칼럼만 "desc"로 표시, 글자 굵게
-      th.dataset.order = "desc";
-      th.style.color = "black";
-  
-    } else {
-      // 현재 정렬 상태가 "desc" → "none"으로 (원래 상태 복원)
-  
-      // 1) this 칼럼 상태 초기화
-      th.dataset.order = "none";
-      th.style.color = "";
-  
-      // 2) 테이블을 초기 순서로 복원
-      originalRows.forEach(row => tbody.appendChild(row));
-    }
-  }
-  
-  // 다른 칼럼을 눌렀을 때, 이전 칼럼의 표시를 해제하는 헬퍼함수
-  function resetAllThStyles(table, exceptThisTh) {
-    const allTh = table.querySelectorAll("thead th[data-order]");
-    allTh.forEach(th => {
-      if (th !== exceptThisTh) {
-        // 상태를 none으로
-        th.dataset.order = "none";
-        // 폰트 굵기 해제
-        th.style.fontWeight = "";
+      function filterTable() {
+        const query = searchInput.value.trim().toLowerCase();
+        tableRows.forEach((row) => {
+          const idCell = row.querySelector("td:nth-child(1)").textContent.toLowerCase();
+          const nameCell= row.querySelector("td:nth-child(2)").textContent.toLowerCase();
+          if (idCell.includes(query) || nameCell.includes(query)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
       }
+      const debouncedFilter = debounce(filterTable, 300);
+      searchInput.addEventListener("input", debouncedFilter);
     });
-  }
   </script>
-  
-  
-<!-- ########## -->
-<!-- chart JS -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="text/javascript">
-  // Django 템플릿 변수 -> 자바스크립트
-  var labels = {{ labels|safe }};
-  var teamQuestions = {{ team_questions|safe }};
-  var otherQuestions = {{ other_questions|safe }};
 
-  const ctx = document.getElementById('myChart').getContext('2d');
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="text/javascript">
+    // Django 템플릿 변수 -> JS
+    var labels = {{ labels|safe }};
+    var teamQuestions = {{ team_questions|safe }};
+    var otherQuestions = {{ other_questions|safe }};
 
-  const myChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,  
-      datasets: [
-        {
-          label: '개발부 질문 수',
-          data: teamQuestions,
-          backgroundColor: 'rgba(255, 99, 132, 0.7)',
-          stack: 'questions',  // 스택 그룹 이름
-        },
-        {
-          label: '기타 질문 수',
-          data: otherQuestions,
-          backgroundColor: 'rgba(54, 162, 235, 0.7)',
-          stack: 'questions',  // 같은 스택 그룹
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          stacked: true   // X축 스택 설정
-        },
-        y: {
-          stacked: true,  // Y축 스택 설정
-          beginAtZero: true
-        }
-      }
-    }
-  });
-</script>
-<!--월별TOP5-->
-<script>
-// Django 템플릿 변수를 자바스크립트 배열로 받기
-var polarLabels = {{ keyword_labels|safe }};   // 예: ["특별휴가","사유","연차","회사","기타"]
-var polarValues = {{ keyword_values|safe }};   // 예: [10,8,6,5,3]
-
-// 문서 로드 후 Chart.js로 Polar Area 차트 생성
-document.addEventListener("DOMContentLoaded", function() {
-  const ctxPolar = document.getElementById('keywordPolarChart').getContext('2d');
-
-  const polarChart = new Chart(ctxPolar, {
-    type: 'polarArea',
-    data: {
-      labels: polarLabels,
-      datasets: [{
-        label: 'Keyword Frequency',
-        data: polarValues,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.5)',
-          'rgba(54, 162, 235, 0.5)',
-          'rgba(255, 206, 86, 0.5)',
-          'rgba(75, 192, 192, 0.5)',
-          'rgba(153, 102, 255, 0.5)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      // Chart.js >= 3.x syntax
-      scales: {
-        r: {
-          beginAtZero: true
-        }
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: '개발부 질문 수',
+            data: teamQuestions,
+            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+            stack: 'questions',
+          },
+          {
+            label: '기타 질문 수',
+            data: otherQuestions,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            stack: 'questions',
+          }
+        ]
       },
-      plugins: {
-        legend: {
-          position: 'right', // 예: 범례 위치
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            stacked: true,
+            ticks: {
+              color: 'rgb(142,147,153)'
+            }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: {
+              color: 'rgb(163,177,193)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'rgb(142,147,153)'
+            }
+          }
         }
       }
-    }
-  });
-});
-</script>
-
-
-<!--   Optional JS   -->
-<script src="./assets/js/plugins/chart.js/dist/Chart.min.js"></script>
-<script src="./assets/js/plugins/chart.js/dist/Chart.extension.js"></script>
-<!--   Argon JS   -->
-<script src="./assets/js/argon-dashboard.min.js?v=1.1.2"></script>
-<script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
-<script>
-  window.TrackJS &&
-    TrackJS.install({
-      token: "ee6fab19c5a04ac1a32a645abde4613a",
-      application: "argon-dashboard-free"
     });
-</script>
+  </script>
+
+  <!-- Polar Chart (키워드) -->
+  <script>
+    var polarLabels = {{ keyword_labels|safe }};
+    var polarValues = {{ keyword_values|safe }};
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const ctxPolar = document.getElementById('keywordPolarChart').getContext('2d');
+      const polarChart = new Chart(ctxPolar, {
+        type: 'polarArea',
+        data: {
+          labels: polarLabels,
+          datasets: [{
+            label: 'Keyword Frequency',
+            data: polarValues,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.5)',
+              'rgba(54, 162, 235, 0.5)',
+              'rgba(255, 206, 86, 0.5)',
+              'rgba(75, 192, 192, 0.5)',
+              'rgba(153, 102, 255, 0.5)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'right'
+            }
+          }
+        }
+      });
+    });
+  </script>
+
+  <!-- Optional Argon JS -->
+  <script src="./assets/js/plugins/chart.js/dist/Chart.min.js"></script>
+  <script src="./assets/js/plugins/chart.js/dist/Chart.extension.js"></script>
+  <script src="./assets/js/argon-dashboard.min.js?v=1.1.2"></script>
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS &&
+      TrackJS.install({
+        token: "ee6fab19c5a04ac1a32a645abde4613a",
+        application: "argon-dashboard-free"
+      });
+  </script>
 </body>
 </html>

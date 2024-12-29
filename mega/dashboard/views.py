@@ -16,7 +16,6 @@ from .models import (
     hrdatabase_chatbotconversations
 )
 
-
 @login_required
 def login_check(request):
     try:
@@ -58,15 +57,14 @@ TEAM_ID_MAP = {
 TEAM_MAP = {
     "TEAM04": "개발1팀", "TEAM05": "개발2팀", "TEAM06": "개발3팀",
     "TEAM07": "기획팀",  "TEAM08": "전략팀",  "TEAM09": "디지털마케팅팀",
-    "TEAM10": "국내영업팀","TEAM11":"해외영업팀","TEAM12":"B2B영업팀",
+    "TEAM10": "국내영업팀", "TEAM11": "해외영업팀", "TEAM12": "B2B영업팀",
     "TEAM02": "지원팀",   "TEAM03": "후생관리팀",
-    "TEAM13": "회계팀",   "TEAM14": "재무기획팀", "TEAM15":"예산관리팀",
+    "TEAM13": "회계팀",   "TEAM14": "재무기획팀", "TEAM15": "예산관리팀",
 }
 RANK_MAP = {
     "RANK01": "사원", "RANK02": "주임", "RANK03": "대리",
     "RANK04": "과장", "RANK05": "차장", "RANK06": "부장",
 }
-
 
 def get_monday(d: date) -> date:
     """주어진 날짜 d가 속한 주의 월요일을 반환"""
@@ -76,75 +74,77 @@ def get_monday(d: date) -> date:
 
 @login_required
 def board_common(request, dept_slug):
+    # -----------------------
+    # 부서 체크
+    # -----------------------
     if dept_slug not in TEAM_ID_MAP:
         return render(request, 'dashboard/error.html', {'error_message': '잘못된 부서 slug 입니다.'})
     team_ids = TEAM_ID_MAP[dept_slug]
 
-    now_date = date.today()  # 오늘
-    # -------------------------------------
-    # 1) "월요일 시작" 주별 통계용 (최근 8주)
-    # -------------------------------------
-    # a) 이번 주(월요일) 찾기
-    this_monday = get_monday(now_date)
+    # -----------------------
+    # 0) 오늘 날짜
+    # -----------------------
+    now_date = date.today()
 
-    # b) 8주치 (0..7), 오래된 주부터 순서대로
+    # -----------------------
+    # 1) 최근 8주 주별 질문 통계
+    # -----------------------
+    this_monday = get_monday(now_date)   # 이번 주 월요일
     week_ranges = []
-    for i in reversed(range(8)):  # 0..7 거꾸로
+    for i in reversed(range(8)):  # 과거 8주(0..7)를 오래된 순부터
         week_start = this_monday - timedelta(weeks=i)
         week_end   = week_start + timedelta(days=6)  # 월~일
         week_ranges.append((week_start, week_end))
-    
-    # c) DB에서 8주 범위 전체 쿼리 (최적화를 위해 한 번에)
+
     earliest_monday = week_ranges[0][0]
     latest_sunday   = week_ranges[-1][1]
-    
-    # 질문을 전부 불러온 뒤, 주별로 분리
+
+    # DB에서 범위 내 질문 전부 조회
     all_qs = (
         hrdatabase_chatbotconversations.objects
         .filter(question_date__range=(earliest_monday, latest_sunday))
         .values('question_date', 'team_id__team_id')
     )
 
-    # d) 주별 집계
-    #    - team 질문 수
-    #    - total 질문 수
     weekly_labels = []
     weekly_team_questions = []
-    weekly_other_questions= []
+    weekly_other_questions = []
 
     for (w_start, w_end) in week_ranges:
-        # 레이블 예: "24/12/04 ~ 24/12/10"
         label_start = w_start.strftime('%y/%m/%d')
         label_end   = w_end.strftime('%y/%m/%d')
         label = f"{label_start} ~ {label_end}"
-        
-        # team count
-        team_count = sum(1 for q in all_qs 
-                         if w_start <= q['question_date'] <= w_end
-                            and q['team_id__team_id'] in team_ids)
-        # total count
-        total_count= sum(1 for q in all_qs 
-                         if w_start <= q['question_date'] <= w_end)
+
+        # 개발부(또는 해당 dept_slug) 팀들 질문 수
+        team_count = sum(
+            1 for q in all_qs
+            if w_start <= q['question_date'] <= w_end and q['team_id__team_id'] in team_ids
+        )
+        # 전체 질문 수
+        total_count = sum(
+            1 for q in all_qs
+            if w_start <= q['question_date'] <= w_end
+        )
         other_count = total_count - team_count
 
         weekly_labels.append(label)
         weekly_team_questions.append(team_count)
         weekly_other_questions.append(other_count)
 
+    # 최신 5주만
     weekly_labels         = weekly_labels[-5:]
     weekly_team_questions = weekly_team_questions[-5:]
     weekly_other_questions= weekly_other_questions[-5:]
 
-    # -------------------------------------
-    # 2) 반려 질문, 직원 목록, 키워드 등 
-    #    (아래는 기존 코드 그대로 유지)
-    # -------------------------------------
+    # -----------------------
+    # 2) 반려 질문, 직원목록, 키워드
+    # -----------------------
     now_date = datetime.now().date()
     default_year  = now_date.year
     default_month = now_date.month
 
-    year = request.GET.get('year', default_year)
-    month= request.GET.get('month', default_month)
+    year  = request.GET.get('year', default_year)
+    month = request.GET.get('month', default_month)
     try:
         year  = int(year)
         month = int(month)
@@ -158,7 +158,7 @@ def board_common(request, dept_slug):
     last_day = calendar.monthrange(year, month)[1]
     end_of_month = date(year, month, last_day)
 
-    # 키워드용 kyear/kmonth
+    # 키워드용
     kyear  = request.GET.get('kyear', default_year)
     kmonth = request.GET.get('kmonth', default_month)
     try:
@@ -174,7 +174,6 @@ def board_common(request, dept_slug):
     k_last_day = calendar.monthrange(kyear, kmonth)[1]
     k_end = date(kyear, kmonth, k_last_day)
 
-    # 이전/다음 계산 (키워드용)
     if kmonth == 1:
         k_prev_year  = kyear - 1
         k_prev_month = 12
@@ -189,13 +188,25 @@ def board_common(request, dept_slug):
         k_next_month = kmonth + 1
     next_k_disabled = False
 
-    # 직원 조회
+    # -----------------------
+    # 직원 조회 & 중복 제거
+    # -----------------------
     dev_members = hrdatabase_teammanagement.objects.filter(team_id__in=team_ids).select_related('employee_id')
+
+    processed_ids = set()  # 이미 추가한 employee_id를 저장
     employee_data = []
+
     for member in dev_members:
         emp = member.employee_id
+        if emp.employee_id in processed_ids:
+            # 이미 추가된 직원이면 스킵
+            continue
+        processed_ids.add(emp.employee_id)
+
+        # 근태 정보
         attendance = hrdatabase_attendancemanagement.objects.filter(employee_id=emp).first()
 
+        # 팀명, 직급명 매핑
         team_label = TEAM_MAP.get(member.team_id, member.team_id)
         rank_label = RANK_MAP.get(emp.employee_level, emp.employee_level)
 
@@ -205,6 +216,7 @@ def board_common(request, dept_slug):
             'rank': rank_label,
             'phone_number': emp.phone_number,
             'email': emp.email,
+            # 첫 번째 팀만 표시 (여러 팀이면 member.team_id가 중복될 수 있음)
             'team_id': team_label,
         }
         if attendance:
@@ -222,6 +234,27 @@ def board_common(request, dept_slug):
 
         employee_data.append(row_data)
 
+    # -----------------------
+    # 2-1) 서버 사이드 정렬 로직
+    # -----------------------
+    sort_col = request.GET.get('sort_col')  # "7", "8", "9", "10" 등
+    sort_dir = request.GET.get('sort_dir', 'none')  # "desc", "asc", "none"
+
+    FIELD_MAP = {
+        '7':  'monthly_late_days',      # Tardies_Month
+        '8':  'total_late_days',        # Tardies
+        '9':  'total_absence_days',     # Absences
+        '10': 'remaining_annual_leave', # Leave_Left
+    }
+
+    if sort_col in FIELD_MAP and sort_dir in ['asc', 'desc']:
+        field_name = FIELD_MAP[sort_col]
+        employee_data.sort(
+            key=lambda x: x[field_name] if x[field_name] is not None else 0,
+            reverse=(sort_dir == 'desc')
+        )
+
+    # 페이지네이션
     paginator = Paginator(employee_data, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
@@ -267,11 +300,9 @@ def board_common(request, dept_slug):
     top5_labels = [x[0] for x in top5]
     top5_values = [x[1] for x in top5]
 
-    # -------------------------------------
-    # 3) 템플릿에 넘길 context
-    # (labels/team_questions/other_questions를
-    #  "주 단위" 것으로 대체)
-    # -------------------------------------
+    # -----------------------
+    # 컨텍스트 구성 & 렌더
+    # -----------------------
     context = {
         # 주별 통계
         'labels': weekly_labels,
@@ -296,12 +327,12 @@ def board_common(request, dept_slug):
         'k_next_year':  k_next_year,
         'k_next_month': k_next_month,
         'next_k_disabled': next_k_disabled,
+
+        # 정렬 파라미터
+        'sort_col': sort_col,
+        'sort_dir': sort_dir,
     }
-
     return render(request, f'dashboard/board_{dept_slug}.html', context)
-
-
-
 
 
 @login_required
