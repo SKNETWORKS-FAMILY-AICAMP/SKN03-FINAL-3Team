@@ -3,7 +3,9 @@
 import nltk
 import sys
 import os
-
+# 추가된 부분
+from huggingface_hub import login
+login(token="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")
 # OpenMP 스레드 수 제한
 os.environ["OMP_NUM_THREADS"] = "1"
 
@@ -42,7 +44,7 @@ def main(user_queries, user_token="dummy_token"):
         user_input_processed = sanitize_user_input(user_input_processed)
 
         # 3) 키워드 추출 후 임베딩
-        keywords = extract_keywords(user_input_processed, top_n=5)
+        keywords = extract_keywords(user_input_processed, top_n=4)
         search_query = " ".join(keywords) if keywords else user_input_processed
         query_emb = indexer.get_embedding(search_query)
 
@@ -88,4 +90,4 @@ if __name__ == "__main__":
     for ans in answers:
         print(ans)
 
-# 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
+# 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

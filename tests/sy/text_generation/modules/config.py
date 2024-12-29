@@ -4,7 +4,7 @@ import re
 
 # 환경 설정 상수들
 SIMILARITY_THRESHOLD = 0.63
-TOP_K = 5
+TOP_K = 4
 PERSONAL_INFO_PATTERNS = [
     r"\b\d{3}-\d{4}-\d{4}\b",  # 전화번호 패턴 예시
     r"\b\d{6}-\d{7}\b"         # 주민등록번호 패턴 예시

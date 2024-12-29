@@ -51,11 +51,11 @@ class QAModel:
     def generate_answer(self, prompt):
         try:
             outputs = self.generator(
-                prompt,
-                max_new_tokens=300,
-                temperature=0.5,
+                temperature=0.2,
                 do_sample=True,
-                truncation=True
+                truncation=True,
+                repetition_penalty=1.0,
+                use_cache=True,
             )
             raw_answer = outputs[0]["generated_text"]
         except Exception:
