@@ -1,3 +1,5 @@
+# management/commands/run_socket_mode.py
+
 import time
 import logging
 import requests
@@ -11,6 +13,7 @@ from slack_sdk.socket_mode.request import SocketModeRequest
 from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_sdk.errors import SlackApiError
 
+# [핵심] views.py 에서 handle_slack_event 임포트
 from agent.views import handle_slack_event
 
 logger = logging.getLogger("agent")
@@ -20,26 +23,8 @@ logger.addHandler(console_handler)
 
 processed_events = set()
 
-
-def get_user_id_by_email(email):
-    headers = {
-        'Authorization': f'Bearer {settings.SLACK_BOT_TOKEN}',
-        'Content-type': 'application/json; charset=utf-8',
-    }
-    url = f'https://slack.com/api/users.lookupByEmail?email={email}'
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        if data.get('ok'):
-            return data['user']['id']
-        else:
-            logger.error(f"Error fetching user ID: {data.get('error')}")
-    else:
-        logger.error(f"HTTP Error while fetching user ID: {response.status_code}")
-    return None
-
-
 def send_dm(user_id, message):
+    # DM 보내기 헬퍼함수 (예시)
     headers = {
         'Authorization': f'Bearer {settings.SLACK_BOT_TOKEN}',
         'Content-type': 'application/json; charset=utf-8',
@@ -50,22 +35,13 @@ def send_dm(user_id, message):
         'text': message,
     }
     response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        data = response.json()
-        if data.get('ok'):
-            logger.info("Message sent successfully.")
-        else:
-            logger.error(f"Error sending message: {data.get('error')}")
-    else:
-        logger.error(f"HTTP Error while sending message: {response.status_code}")
-
+    ...
 
 class Command(BaseCommand):
     help = "Run Slack Socket Mode client with extra debugging logs."
 
     def handle(self, *args, **options):
         logger.info("Initializing Slack WebClient with SLACK_BOT_TOKEN...")
-
         web_client = WebClient(token=settings.SLACK_BOT_TOKEN)
 
         try:
@@ -87,13 +63,17 @@ class Command(BaseCommand):
             if req.type == "events_api":
                 event = req.payload.get("event", {})
                 event_id = req.payload.get("event_id", "")
+
+                # Ack
                 client.send_socket_mode_response(SocketModeResponse(envelope_id=req.envelope_id))
 
+                # 중복 이벤트 처리 방지
                 if event_id in processed_events:
                     logger.debug(f"[process] Duplicate event_id={event_id}. Skipping this event.")
                     return
                 processed_events.add(event_id)
 
+                # 봇 메시지, subtype 등 무시
                 bot_id = event.get("bot_id")
                 subtype = event.get("subtype")
                 if bot_id or subtype:
@@ -106,29 +86,43 @@ class Command(BaseCommand):
                 event_ts = event.get("ts", None)
                 channel_type = event.get("channel_type", "")
 
+                # 1) app_mention 처리
                 if event_type == "app_mention":
-                    logger.debug(f"[process] Mention received: user_id={user_id}, text={user_message}")
-
-                    # 특정 조건 확인: 메시지가 "!"로 끝나는지
+                    response_text = handle_slack_event(user_message, user_id, channel_id)
+                    # 느낌표로 끝나면 DM
                     if user_message.strip().endswith("!"):
-                        logger.debug("[process] Message ends with '!' => Sending DM.")
-                        response_text = handle_slack_event(user_message, user_id, channel_id)
                         if response_text:
                             send_dm(user_id, response_text)
                     else:
-                        logger.debug("[process] Message does not end with '!' => Replying in thread.")
-                        response_text = handle_slack_event(user_message, user_id, channel_id)
                         if response_text:
                             try:
-                                post_kwargs = {
-                                    "channel": channel_id,
-                                    "text": response_text,
-                                    "thread_ts": event_ts,  # 스레드 형식으로 답변
-                                }
+                                if channel_type == "channel":
+                                    post_kwargs = {
+                                        "channel": channel_id,
+                                        "text": response_text,
+                                        "thread_ts": event_ts,
+                                    }
+                                else:
+                                    post_kwargs = {
+                                        "channel": channel_id,
+                                        "text": response_text,
+                                    }
                                 res = client.web_client.chat_postMessage(**post_kwargs)
-                                logger.debug(f"[process] Channel thread response => {res}")
                             except SlackApiError as e:
-                                logger.error(f"[process] Failed to send Slack channel message: {e.response['error']}", exc_info=True)
+                                logger.error(f"Failed to send Slack channel message: {e.response['error']}", exc_info=True)
+
+                # 2) 개인 DM 처리
+                if event_type == "message" and channel_type == "im":
+                    response_text = handle_slack_event(user_message, user_id, channel_id)
+                    if response_text:
+                        try:
+                            post_kwargs = {
+                                "channel": channel_id,
+                                "text": response_text
+                            }
+                            res = client.web_client.chat_postMessage(**post_kwargs)
+                        except SlackApiError as e:
+                            logger.error(f"Failed to send DM: {e.response['error']}", exc_info=True)
 
         socket_mode_client.socket_mode_request_listeners.append(process)
         socket_mode_client.connect()
