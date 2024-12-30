@@ -3,13 +3,13 @@ import csv
 import zoneinfo
 from django.core.management.base import BaseCommand
 from agent.models import (
-    CommonCode,
-    Employee,
-    WelfareBenefitsManagement,
-    WelfarePointsManagement,
-    AttendanceManagement,
-    AttendanceRecord,
-    TeamManagement,
+    hrdatabase_hrmastercode,
+    hrdatabase_employee,
+    hrdatabase_welfarebenefits,
+    hrdatabase_welfarebenefits,
+    hrdatabase_attendancemanagement,
+    hrdatabase_attendancerecord,
+    hrdatabase_teammanagement,
 )
 from datetime import datetime
 from dotenv import load_dotenv
@@ -34,7 +34,7 @@ class Command(BaseCommand):
         # 각 CSV 파일 경로 설정
         file_paths = {
             "common_code": os.path.join(base_csv_path, "공통코드.csv"),
-            "employee": os.path.join(base_csv_path, "직원정보.csv"),
+            "hrdatabase_employee": os.path.join(base_csv_path, "직원정보.csv"),
             "welfare_points": os.path.join(base_csv_path, "복지포인트관리.csv"),
             "welfare_benefits": os.path.join(base_csv_path, "복지혜택관리.csv"),
             "attendance_management": os.path.join(base_csv_path, "근태관리.csv"),
@@ -44,7 +44,7 @@ class Command(BaseCommand):
 
         # 데이터베이스 삽입 함수 호출
         self.import_common_code(file_paths["common_code"])
-        self.import_employee(file_paths["employee"])
+        self.import_hrdatabase_employee(file_paths["employee"])
         self.import_welfare_points(file_paths["welfare_points"])
         self.import_welfare_benefits(file_paths["welfare_benefits"])
         self.import_attendance_management(file_paths["attendance_management"])
@@ -72,7 +72,7 @@ class Command(BaseCommand):
     def import_common_code(self, filepath):
         reader = open_csv_file(filepath)
         for row in reader:
-            CommonCode.objects.update_or_create(
+            hrdatabase_hrmastercode.objects.update_or_create(
                 code=row["코드"],
                 defaults={
                     "parent_code": row["상위코드"] or None,
@@ -80,17 +80,17 @@ class Command(BaseCommand):
                     "code_description": row["코드 설명"] or None,
                 },
             )
-        self.stdout.write(self.style.SUCCESS("Imported CommonCode data."))
+        self.stdout.write(self.style.SUCCESS("Imported hrdatabase_hrmastercode data."))
 
-    def import_employee(self, filepath):
+    def import_hrdatabase_employee(self, filepath):
         reader = open_csv_file(filepath)
         for row in reader:
-            Employee.objects.update_or_create(
+            hrdatabase_employee.objects.update_or_create(
                 employee_id=row["employee_id"],
                 defaults={
                     "slack_id": row["slack_id"],
                     "name": row["name"],
-                    "rank": row["rank"],
+                    "employee_level": row["employee_level"],
                     "employment_type": row["employment_type"],
                     "email": row["email"],
                     "password": row["password"],
@@ -107,13 +107,13 @@ class Command(BaseCommand):
                     "home_ownership": row["home_ownership"],
                 },
             )
-        self.stdout.write(self.style.SUCCESS("Imported Employee data."))
+        self.stdout.write(self.style.SUCCESS("Imported hrdatabase_employee data."))
 
     def import_welfare_points(self, filepath):
         reader = open_csv_file(filepath)
         for row in reader:
-            employee = Employee.objects.get(employee_id=row["employee_id"])
-            WelfarePointsManagement.objects.update_or_create(
+            employee = hrdatabase_employee.objects.get(employee_id=row["employee_id"])
+            hrdatabase_welfarebenefits.objects.update_or_create(
                 employee=employee,
                 point_date=self.parse_date(row["point_date"]),
                 defaults={
@@ -129,8 +129,8 @@ class Command(BaseCommand):
         reader = open_csv_file(filepath)
         for row in reader:
             try:
-                employee = Employee.objects.get(employee_id=row["employee_id"])
-                WelfareBenefitsManagement.objects.update_or_create(
+                employee = hrdatabase_employee.objects.get(employee_id=row["employee_id"])
+                hrdatabase_welfarebenefits.objects.update_or_create(
                     employee=employee,
                     defaults={
                         "childcare_used": row["childcare_used"],
@@ -141,9 +141,9 @@ class Command(BaseCommand):
                         "student_loan": row["student_loan"],
                     },
                 )
-            except Employee.DoesNotExist:
+            except hrdatabase_employee.DoesNotExist:
                 self.stdout.write(
-                    self.style.ERROR(f"Employee not found: {row['employee_id']}")
+                    self.style.ERROR(f"hrdatabase_employee not found: {row['employee_id']}")
                 )
                 continue
         self.stdout.write(self.style.SUCCESS("Imported Welfare Benefits data."))
@@ -151,8 +151,8 @@ class Command(BaseCommand):
     def import_attendance_management(self, filepath):
         reader = open_csv_file(filepath)
         for row in reader:
-            employee = Employee.objects.get(employee_id=row["employee_id"])
-            AttendanceManagement.objects.update_or_create(
+            employee = hrdatabase_employee.objects.get(employee_id=row["employee_id"])
+            hrdatabase_attendancemanagement.objects.update_or_create(
                 employee=employee,
                 defaults={
                     "total_late_days": row["total_late_days"],
@@ -170,8 +170,8 @@ class Command(BaseCommand):
         reader = open_csv_file(filepath)
         for row in reader:
             try:
-                employee = Employee.objects.get(employee_id=row["employee_id"])
-                AttendanceRecord.objects.update_or_create(
+                employee = hrdatabase_employee.objects.get(employee_id=row["employee_id"])
+                hrdatabase_attendancerecord.objects.update_or_create(
                     record_id=int(row["record_id"]),
                     defaults={
                         "employee": employee,
@@ -200,7 +200,7 @@ class Command(BaseCommand):
                         ),
                     },
                 )
-            except Employee.DoesNotExist:
+            except hrdatabase_employee.DoesNotExist:
                 self.stdout.write(
                     self.style.ERROR(f"Employee not found: {row['employee_id']}")
                 )
@@ -211,8 +211,8 @@ class Command(BaseCommand):
         reader = open_csv_file(filepath)
         for row in reader:
             try:
-                employee = Employee.objects.get(employee_id=row["employee_id"])
-                TeamManagement.objects.update_or_create(
+                employee = hrdatabase_employee.objects.get(employee_id=row["employee_id"])
+                hrdatabase_teammanagement.objects.update_or_create(
                     team_id=row["team_id"],  # team_id 필터 추가
                     employee=employee,  # employee 필터 추가
                     defaults={
@@ -220,7 +220,7 @@ class Command(BaseCommand):
                         "team_leader": row["team_leader"].lower() == "true",
                     },
                 )
-            except Employee.DoesNotExist:
+            except hrdatabase_employee.DoesNotExist:
                 self.stdout.write(
                     self.style.ERROR(f"Employee not found: {row['employee_id']}")
                 )

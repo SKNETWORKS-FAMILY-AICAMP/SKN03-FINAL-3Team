@@ -12,9 +12,23 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
+import boto3
 
-load_dotenv()
+# AWS SSM 클라이언트 생성
+ssm = boto3.client('ssm', region_name='ap-northeast-2')
+
+def get_parameter(name, with_decryption=True):
+    """AWS Parameter Store에서 값을 가져오는 함수"""
+    return ssm.get_parameter(Name=name, WithDecryption=with_decryption)['Parameter']['Value']
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = get_parameter('/mega/SECRET_KEY')
+SLACK_APP_TOKEN = get_parameter('/mega/slack/SLACK_APP_TOKEN')
+SLACK_BOT_TOKEN = get_parameter('/mega/slack/SLACK_BOT_TOKEN')
+OPENAI_API_KEY = get_parameter('/mega/OPENAI_API_KEY')
+GOOGLE_CALENDAR_API_KEY = get_parameter('/mega/calendar/googleCalendarApiKey')
+GOOGLE_CALENDAR_ID = get_parameter('/mega/calendar/googleCalendarId')
+DEBUG = True
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,11 +38,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
-DEBUG = os.getenv("DEBUG", "False") == "True"
-SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
-SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_BOT_USER_ID = os.getenv("SLACK_BOT_USER_ID")
+#DEBUG = os.getenv("DEBUG", "False") == "True"
+#SLACK_BOT_USER_ID = os.getenv("SLACK_BOT_USER_ID")
 
 ALLOWED_HOSTS = []
 
@@ -80,13 +91,13 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': get_parameter('/mega/oh-db-info/DB_NAME'),
+        'USER': get_parameter('/mega/oh-db-info/DB_USER'),
+        'PASSWORD': get_parameter('/mega/oh-db-info/DB_PASSWORD'),#, with_decryption=True),
+        'HOST': get_parameter('/mega/oh-db-info/DB_HOST'),
+        'PORT': get_parameter('/mega/oh-db-info/DB_PORT'),
     }
 }
 

@@ -1,17 +1,8 @@
-# import torch
-# from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
-# 사전에 파인튜닝한 모델 경로
-# model_path = "intent_model"
-# tokenizer = AutoTokenizer.from_pretrained(model_path)
-# model = AutoModelForSequenceClassification.from_pretrained(model_path)
-
+# 간단 예시: 실제로는 모델 로딩 후 분류 로직 수행 가능
 intent_classes = ["general", "hr_query", "permission", "unknown"]
 
-
-# def classify_intent(message: str) -> str:
-#    inputs = tokenizer(message, return_tensors="pt")
-#    outputs = model(**inputs)
-#    logits = outputs.logits
-#    idx = torch.argmax(logits, dim=1).item()
-#    return intent_classes[idx]
+def classify_intent(message: str) -> str:
+    # 임의 규칙 기반 분류 예시
+    if "인사" in message or "근태" in message or "사원" in message:
+        return "hr_query"
+    return "general"

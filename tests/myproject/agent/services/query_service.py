@@ -1,7 +1,6 @@
 import re
 from agent.utils.sql_validator import validate_and_execute_sql
 
-
 def extract_sql_query(sllm_response: str) -> str:
     match = re.search(r"SQL 쿼리:\n(.+)", sllm_response, re.DOTALL)
     if match:
