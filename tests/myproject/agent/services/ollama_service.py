@@ -20,7 +20,7 @@ AGENT_MODEL_NAME = "my-agent-model:latest"
 
 
 def call_ollama_stream(
-    url: str, model: str, prompt: str, temperature: float = 0.7, max_tokens: int = 512
+    url: str, model: str, prompt: str, temperature: float, max_tokens: int
 ) -> str:
     """
     Ollama의 /api/generate 엔드포인트를 스트리밍 모드로 호출하여,
@@ -78,7 +78,7 @@ def call_ollama_stream(
 
 
 def query_ollama_classifier(
-    prompt: str, temperature: float = 0.1, max_tokens: int = 128  # 기본값  # 기본값
+    prompt: str, temperature: float = 0.1, max_tokens: int = 256
 ) -> str:
     """
     예: Ollama의 분류 모델을 사용
