@@ -78,7 +78,7 @@ def call_ollama_stream(
 
 
 def query_ollama_classifier(
-    prompt: str, temperature: float = 0.1, max_tokens: int = 256  # 기본값  # 기본값
+    prompt: str, temperature: float = 0.1, max_tokens: int = 128  # 기본값  # 기본값
 ) -> str:
     """
     예: Ollama의 분류 모델을 사용
@@ -107,14 +107,13 @@ def query_ollama_nl2sql(
     )
 
 
-def query_ollama_agent(prompt: str) -> str:
-    """
-    FAQ/챗봇 모델
-    """
+def query_ollama_agent(
+    prompt: str, temperature: float = 0.7, max_tokens: int = 256
+) -> str:
     return call_ollama_stream(
         url=OLLAMA_AGENT_URL,
         model=AGENT_MODEL_NAME,
         prompt=prompt,
-        temperature=0.7,
-        max_tokens=256,
+        temperature=temperature,
+        max_tokens=max_tokens,
     )

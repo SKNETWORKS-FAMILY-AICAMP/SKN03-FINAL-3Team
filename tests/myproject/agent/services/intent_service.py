@@ -95,10 +95,15 @@ Answer with exactly "NEED_DB" or "NO_DB", nothing else.
         logger.debug(f"[classify_db_need] raw_response = {response_text}")
 
         # 간단히 "NEED_DB" 포함 여부로 구분
-        if "NEED_DB" in response_text.upper():
+        lines = response_text.strip().splitlines()
+        # 마지막 줄만 추출
+        final_line = lines[-1].strip().upper()
+        if final_line == "NEED_DB":
             return "NEED_DB"
-        else:
+        elif final_line == "NO_DB":
             return "NO_DB"
+        else:
+            return "NO_DB"  # fallback
 
     except Exception as e:
         logger.error(f"메시지 분류 실패: {e}", exc_info=True)
