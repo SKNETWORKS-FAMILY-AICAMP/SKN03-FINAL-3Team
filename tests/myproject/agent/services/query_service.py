@@ -9,82 +9,50 @@ logger = logging.getLogger("agent")
 
 def execute_nl2sql_flow(
     user_message: str,
-    user_info: dict,
-    access_level: str,
-    extract_sql_func,
-    is_sql_permitted_func,
+    schema_text: str = "",
+    max_new_tokens: int = 512,
+    temperature: float = 0.0,
+    # top_p: float = 0.9,
+    # repetition_penalty: float = 1.0,
+    **generate_kwargs,
 ) -> str:
     """
-    1) user_message + access_level 이용해 nl2sql prompt 생성
-    2) Ollama로 nl2sql 모델 호출
-    3) SQL 추출 => 권한 체크 => DB 실행 => 결과 포맷팅
+    사용자 질문(question_text)을 받아서, schema_text(옵션)과 함께
+    (1) NL2SQL 프롬프트를 구성
+    (2) query_ollama_nl2sql()로 호출
+    (3) 최종 SQL 문자열을 리턴
     """
-    rank_name = user_info.get("rank_name")
-    slack_id = user_info.get("slack_id")
 
-    nl2sql_prompt = f"""
-사용자 직급: {rank_name}
-접근 레벨: {access_level}
-원본 질문: {user_message}
+    # (A) prompt 구성
+    prompt = f"""Below is a concise summary of the database schema: {schema_text}
+IMPORTANT: UNDER NO CIRCUMSTANCES SHOULD YOU USE ROW_NUMBER() OR PARTITION. ALWAYS PREFER SIMPLE JOIN AND WHERE CONDITIONS. NO EXCEPTIONS.
 
-절대 권한 범위를 넘어서는 테이블/칼럼은 사용하지 말고,
-테이블/칼럼이 불분명하면 "cannot_generate_sql"을 반환하십시오.
-"""
+Now, You should convert the following user question into a SQL query.
+
+### Question:
+{user_message}
+
+### MYSQL:""".strip()
+
+    # (B) 모델 호출 (ollama)
     try:
-        nl2sql_response = query_ollama_nl2sql(
-            prompt=nl2sql_prompt,
-            # model_name="my-nl2sql-model" (단일 서버 + multi model일 경우)
-            temperature=0.0,
-            max_tokens=512,
+        # 모델에 prompt 전달
+        generated_text = query_ollama_nl2sql(
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_new_tokens,
+            # top_p, repetition_penalty 등은 현재 query_ollama_nl2sql 파라미터에 따라 추가 가능
         )
-        logger.debug(f"[execute_nl2sql_flow] raw_sql_response = {nl2sql_response}")
+        logger.debug(f"[generate_sql_v2] raw_text={generated_text}")
     except Exception as e:
-        logger.error(f"nl2sql 모델 호출 실패: {e}", exc_info=True)
-        return "죄송합니다. DB 쿼리를 생성하는 중 오류가 발생했습니다."
-
-    generated_sql = extract_sql_func(nl2sql_response)
-    if not generated_sql or "cannot_generate_sql" in generated_sql.lower():
-        logger.warning("[execute_nl2sql_flow] 올바른 SQL 생성 불가")
-        return "죄송합니다. 해당 질의에 대한 SQL을 생성할 수 없습니다."
-
-    # 권한 체크
-    if not is_sql_permitted_func(generated_sql, access_level):
-        logger.warning(f"SQL 권한 부족: {generated_sql} (access_level={access_level})")
-        return "죄송합니다. 해당 데이터 조회 권한이 없습니다."
-
-    # DB 쿼리 실행 (실제 MySQL 연동 가정)
-    try:
-        query_result = execute_sllm_generated_query(generated_sql, slack_id)
-    except Exception as e:
-        logger.error(f"MySQL 쿼리 실행 실패: {generated_sql}, 에러: {e}", exc_info=True)
-        return "죄송합니다. DB 조회 도중 에러가 발생했습니다."
-
-    if isinstance(query_result, str) and query_result.startswith("ERROR"):
-        logger.error(f"MySQL 쿼리 실행 에러: {query_result}")
-        return "죄송합니다. DB 조회 중 문제가 생겼습니다."
-
-    # 결과 포맷팅
-    try:
-        formatted_response = get_formatted_response(
-            rank_name, user_message, query_result
+        logger.error(
+            f"[generate_sql_v2] query_ollama_nl2sql failed: {e}", exc_info=True
         )
-    except Exception as e:
-        logger.error(f"결과 포맷팅 실패: {e}", exc_info=True)
-        return "죄송합니다. DB 조회 결과를 포맷팅하던 중 오류가 발생했습니다."
+        return ""
 
-    return formatted_response
+    # (C) SQL 부분만 추출
+    if "### MYSQL:" in generated_text:
+        generated_sql = generated_text.split("### MYSQL:")[-1].strip()
+        return generated_sql
 
-
-def execute_sllm_generated_query(sql_query: str, slack_id: str):
-    """
-    실제 DB(MySQL 등)에 쿼리를 실행하는 함수.
-    여기서는 예시로 성공/에러 케이스만 가정함.
-    """
-    logger.info(f"[execute_sllm_generated_query] Executing SQL: {sql_query}")
-    # 실제 DB 접근 로직 필요
-    # 예: conn.execute(sql_query)
-    # return rows or "ERROR:..."
-    return [
-        {"name": "홍길동", "department": "개발팀", "email": "hong@example.com"},
-        {"name": "김영희", "department": "영업팀", "email": "kim@example.com"},
-    ]
+    return generated_text.strip()
