@@ -1,83 +1,76 @@
-from django.conf import settings
+# agent/services/agent_service.py
+
 import logging
-from agent.models import Employee, TeamManagement, CommonCode, AttendanceManagement
-from agent.services.role_service import get_user_role, get_access_level
-from django.db.models import Q
+from typing import Dict, Any
 
-# Django ORM에서 F 사용하려면 import 필요
-from django.db.models import F
+from agent.services.intent_service import classify_db_need
+from agent.services.chat_service import chat_with_agent
+from agent.services.query_service import execute_nl2sql_flow
 
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("agent")
 
 
-def process_user_message(user_message: str, slack_id: str) -> str:
-    # 1. 사용자 정보 조회 (DB 접근은 role_service.py에서)
-    user_info = get_user_role(slack_id)
-    if not user_info:
-        logger.info(f"사용자 정보 없음 (slack_id={slack_id})")
-        return "해당 Slack 사용자를 찾을 수 없습니다. 회사 시스템에 등록되지 않은 사용자입니다."
-
-    # 2. 의도 분류
-    intent = classify_intent(user_message)
+def process_user_message(
+    user_message: str, user_info: Dict[str, Any], access_level: str
+) -> str:
+    """
+    1) Ollama 분류 모델로 'DB가 필요한 질문인지' 판별
+    2) DB 조회가 필요 없다면 => chat_with_agent() 호출
+    3) DB 조회가 필요하다면 => execute_nl2sql_flow() 호출
+    4) 최종 결과 문자열을 반환
+    """
+    user_name = user_info.get("name")
+    rank_name = user_info.get("rank_name")
     logger.debug(
-        f"사용자 의도: {intent}, 사용자: {user_info['name']}({slack_id}), "
-        f"팀: {user_info['team_name']}, 직급: {user_info['rank_name']}"
+        f"[process_user_message] user={user_name}, rank={rank_name}, access_level={access_level}"
     )
 
-    # 3. 직급별 권한 정의 (예: 부장 이상이면 일부 정보 접근 가능)
-    is_executive = user_info["rank_name"] in ["부장"]
-    is_high_level = user_info["team_name"] in ["인사팀"]
+    # 1) 의도 분류
+    db_need_result = classify_db_need(user_message)  # "NEED_DB" or "NO_DB"
 
-    # 4. 쿼리 필요 여부 판단 (예시)
-    needs_query = intent in ["hr_query", "complex"]
+    # 2) DB 조회 불필요 => 일반(FAQ/잡담) 대화
+    if db_need_result == "NO_DB":
+        logger.info("[process_user_message] 일반 대화로 분류 => chat_with_agent()")
+        return chat_with_agent(user_message)
 
-    # 5. 접근 가능 여부 판단 (예시 권한 로직)
-    can_access = True
-    if needs_query:
-        if "다른 팀" in user_message or "타팀" in user_message:
-            if not user_info["team_leader"] and not is_executive:
-                can_access = False
-        if "경영진 정보" in user_message and not is_high_level:
-            can_access = False
+    # 3) DB 조회가 필요한 경우 => nl2sql flow
+    logger.info("[process_user_message] DB 조회 의도로 분류 => execute_nl2sql_flow()")
+    return execute_nl2sql_flow(
+        user_message,
+        user_info,
+        access_level,
+        _extract_sql_from_ollama,
+        _is_sql_permitted,
+    )
 
-    if not can_access:
-        logger.warning(f"권한 부족: {user_info['name']}({slack_id}) 요청 거부")
-        return "죄송하지만 해당 정보를 조회할 권한이 없습니다."
 
-    # 6. 필요하다면 CoT + LLM을 통해 SQL 생성
-    if needs_query:
-        enhanced_prompt = f"""
-        사용자 직급: {user_info['rank_name']}
-        팀장 여부: {"예" if user_info['team_leader'] else "아니오"}
-        부서: {user_info['department_name']}
-        팀: {user_info['team_name']}
-        해당 사용자의 권한 범위 내에서 SQL을 생성하세요.
-        질문: {user_message}
-        """
-        sllm_response = apply_cot(enhanced_prompt, user_info["rank_name"])
-        sql_query = extract_sql_query(sllm_response)
-        if not sql_query:
-            logger.error(
-                f"SQL 추출 실패: LLM 응답에서 SQL을 찾을 수 없음. "
-                f"사용자: {user_info['name']}({slack_id})"
-            )
-            return "죄송합니다, 적절한 응답을 생성할 수 없습니다."
+#
+# 아래 2개 헬퍼 함수는 agent_service.py 내부에 두어도 되고, 별도 파일로 분리해도 됩니다.
+#
 
-        query_result = execute_sllm_generated_query(sql_query, slack_id)
-        if isinstance(query_result, str):
-            # query_result가 에러 메시지일 수 있음
-            logger.error(
-                f"쿼리 실행 에러: {query_result}, 사용자: {user_info['name']}({slack_id})"
-            )
-            return query_result
 
-        # 7. 결과 포맷팅
-        formatted_response = get_formatted_response(
-            user_info["rank_name"], user_message, query_result
-        )
-        return formatted_response
-    else:
-        # 8. 쿼리 없이 처리 가능한 일반 응답(FAQ 등)
-        logger.debug(f"쿼리 불필요 응답 처리: {user_info['name']}({slack_id})")
-        return "해당 정보는 별도 조회 없이도 안내 가능한 내용입니다."
+def _extract_sql_from_ollama(nl2sql_response: str) -> str:
+    """
+    Ollama nl2sql 모델 응답에서 SQL 문을 추출하는 예시.
+    실제로는 JSON 응답, 다른 구분자 등을 쓸 수 있음.
+    """
+    import re
+
+    pattern = r"```sql\s*(.*?)\s*```"
+    match = re.search(pattern, nl2sql_response, flags=re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    # fallback
+    return nl2sql_response.strip()
+
+
+def _is_sql_permitted(sql_query: str, access_level: str) -> bool:
+    """
+    단순 예시: admin 아닌 경우 특정 테이블 차단
+    """
+    restricted_tables = ["financial", "executives"]
+    if access_level != "admin":
+        for tbl in restricted_tables:
+            if tbl in sql_query.lower():
+                return False
+    return True
