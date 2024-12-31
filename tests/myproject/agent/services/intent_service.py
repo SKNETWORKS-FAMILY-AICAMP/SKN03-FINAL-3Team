@@ -13,63 +13,78 @@ def classify_db_need(user_message: str) -> Literal["NEED_DB", "NO_DB"]:
     DB 조회가 필요한지(NEED_DB), 아니면 일반 대화(FAQ/잡담)인지 분류
     """
     classification_prompt = f"""
-User query to classify: "{user_message}"
+You are a specialized classifier that must decide if a user query requires a database lookup ("NEED_DB") or if it can be addressed without querying any database ("NO_DB").
 
-You must decide if the user query requires access to a database ("NEED_DB") or if it can be answered without database access ("NO_DB"). 
+Below are the criteria and examples you must follow strictly. 
+At the end, you must output exactly one of the following strings:
+"NEED_DB"
+or
+"NO_DB"
+(without quotes, and no additional explanation).
 
 Criteria:
-1. **NEED_DB**  
-   - The user is requesting specific data that is typically stored and managed in internal databases or HR systems (e.g., attendance logs, payroll details, personal leave records).
-   - The query explicitly refers to private or proprietary data (e.g., “퇴근 시간 기록,” “급여명세서 내역,” “연차 사용 현황”).
-   - The user’s request implies a need to look up structured records.
 
-2. **NO_DB**  
-   - The request can be handled without querying a database, such as providing HR policies, general FAQs about the company, or casual conversation.
-   - The user is asking for general guidance, a company-wide policy, or information that does not rely on retrieving personal or confidential records.
+1) NEED_DB
+   The user requests specific data typically stored in internal systems (HR, payroll, attendance logs, personal records, etc.).
+   The query involves private or proprietary records that would require secure database retrieval (e.g., “급여명세서,” “연차 내역,” “인사팀 인원 상세정보”).
 
-Additional guidance:
-- If the query suggests accessing personal or confidential data from an HR system, favor "NEED_DB."
-- If it’s a general question about company policies or other information that does not require database lookup, choose "NO_DB."
+2) NO_DB
+   The question can be handled without retrieving any personal or proprietary records from a database.
+   Common examples: HR policy inquiries, general FAQs, casual conversation, or requests for information that do not involve personal data.
 
-Examples (HR-related context):
+Guidelines:
 
-1)  
-Q: "내 이번 달 퇴근 시간 기록 좀 알려줘."  
-A: "NEED_DB"  
-(Explanation: Request for personal attendance data stored in an HR system.)
+- If the user’s request clearly demands personal or confidential information (logs, attendance, payroll, etc.), answer "NEED_DB".
+- If the user’s request is general or does not require looking up any internal records, answer "NO_DB".
+- If the user query is very short, unclear, or does not reference any form of personal or organizational data retrieval (e.g., "test", "hello", "안녕"), default to "NO_DB".
+- Return only the strings "NEED_DB" or "NO_DB" (without quotes) and nothing else.
 
-2)  
-Q: "사내 조직도 좀 보여줄 수 있어?"  
-A: "NEED_DB"  
-(Explanation: Organizational charts or team structures are often in a database.)
 
-3)  
-Q: "승진 기준이 어떻게 돼?"  
-A: "NO_DB"  
-(Explanation: Promotion criteria are typically outlined in policy documents or FAQs, not individual records.)
+Examples:
 
-4)  
-Q: "내 지난주 연차 사용 내역 알려줘."  
-A: "NEED_DB"  
-(Explanation: Specific leave records are stored in an HR database.)
+1) 
+Q: "내 이번 달 퇴근 시간 기록 좀 알려줘."
+A: "NEED_DB"
+(Explanation: Personal attendance data from HR system.)
 
-5)  
-Q: "사내 식당 메뉴가 궁금해."  
-A: "NO_DB"  
-(Explanation: Can be answered via general information or a public schedule.)
+2)
+Q: "사내 조직도 좀 보여줄 수 있어?"
+A: "NEED_DB"
+(Explanation: Organizational charts are often stored in a proprietary database.)
 
-6)  
-Q: "나 이번 달 급여명세서 좀 볼 수 있을까?"  
-A: "NEED_DB"  
-(Explanation: Payroll records are maintained in a secure database.)
+3)
+Q: "승진 기준이 어떻게 돼?"
+A: "NO_DB"
+(Explanation: Promotion criteria are general HR policy, not personal records.)
 
-7)  
-Q: "사내 복지 제도는 뭐가 있지?"  
-A: "NO_DB"  
-(Explanation: General HR policy info, likely in an internal guide or FAQ, not a personal record query.)
+4)
+Q: "내 지난주 연차 사용 내역 알려줘."
+A: "NEED_DB"
+(Explanation: Specific leave records are stored in the HR database.)
 
-Return only one of the following strings based on your classification:
-"NEED_DB" or "NO_DB"
+5)
+Q: "사내 식당 메뉴가 궁금해."
+A: "NO_DB"
+(Explanation: Can be answered by a public or posted schedule, no DB needed.)
+
+6)
+Q: "나 이번 달 급여명세서 좀 볼 수 있을까?"
+A: "NEED_DB"
+(Explanation: Payroll records are securely stored in the database.)
+
+7)
+Q: "사내 복지 제도는 뭐가 있지?"
+A: "NO_DB"
+(Explanation: General HR policy, not personal data.)
+
+8)
+Q: "test"
+A: "NO_DB"
+(Explanation: Short, vague query that does not reference any data retrieval.)
+
+Finally, consider that any query not explicitly requiring internal/private records is "NO_DB".
+Answer with exactly "NEED_DB" or "NO_DB", nothing else.
+
 """
 
     try:

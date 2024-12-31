@@ -8,9 +8,6 @@ logger = logging.getLogger("agent")
 
 # ---------------------------------------------------------------------
 # Ollama 서버별 /api/generate 엔드포인트
-#  - (예) 분류:   http://127.0.0.1:11411/api/generate
-#  - (예) nl2sql: http://127.0.0.1:11413/api/generate
-#  - (예) 챗봇:   http://127.0.0.1:11412/api/generate
 # ---------------------------------------------------------------------
 OLLAMA_CLASSIFIER_URL = "http://127.0.0.1:11411/api/generate"
 OLLAMA_TEXT2SQL_URL = "http://127.0.0.1:11413/api/generate"
@@ -23,7 +20,7 @@ AGENT_MODEL_NAME = "my-agent-model:latest"
 
 
 def call_ollama_stream(
-    url: str, model: str, prompt: str, temperature: float = 0.7, max_tokens: int = 256
+    url: str, model: str, prompt: str, temperature: float = 0.7, max_tokens: int = 512
 ) -> str:
     """
     Ollama의 /api/generate 엔드포인트를 스트리밍 모드로 호출하여,
@@ -81,7 +78,7 @@ def call_ollama_stream(
 
 
 def query_ollama_classifier(
-    prompt: str, temperature: float = 0.7, max_tokens: int = 256  # 기본값  # 기본값
+    prompt: str, temperature: float = 0.1, max_tokens: int = 256  # 기본값  # 기본값
 ) -> str:
     """
     예: Ollama의 분류 모델을 사용
@@ -95,7 +92,9 @@ def query_ollama_classifier(
     )
 
 
-def query_ollama_nl2sql(prompt: str) -> str:
+def query_ollama_nl2sql(
+    prompt: str, temperature: float = 0.0, max_tokens: int = 512
+) -> str:
     """
     DB 조회용 NL2SQL 모델
     """
@@ -103,8 +102,8 @@ def query_ollama_nl2sql(prompt: str) -> str:
         url=OLLAMA_TEXT2SQL_URL,
         model=TEXT2SQL_MODEL_NAME,
         prompt=prompt,
-        temperature=0.0,
-        max_tokens=512,
+        temperature=temperature,
+        max_tokens=max_tokens,
     )
 
 
