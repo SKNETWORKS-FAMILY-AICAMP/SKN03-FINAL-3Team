@@ -22,40 +22,42 @@ logger.addHandler(console_handler)
 
 processed_events = set()
 
+
 def get_user_id_by_email(email):
     headers = {
-        'Authorization': f'Bearer {settings.SLACK_BOT_TOKEN}',
-        'Content-type': 'application/json; charset=utf-8',
+        "Authorization": f"Bearer {settings.SLACK_BOT_TOKEN}",
+        "Content-type": "application/json; charset=utf-8",
     }
-    url = f'https://slack.com/api/users.lookupByEmail?email={email}'
+    url = f"https://slack.com/api/users.lookupByEmail?email={email}"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
-        if data.get('ok'):
-            return data['user']['id']
+        if data.get("ok"):
+            return data["user"]["id"]
         else:
             logger.error(f"Error fetching user ID: {data.get('error')}")
     else:
         logger.error(f"HTTP Error while fetching user ID: {response.status_code}")
     return None
 
+
 def send_dm(user_id, message):
     """
     DM을 보낼 때는 보통 chat.postMessage로 channel=user_id.
     """
     headers = {
-        'Authorization': f'Bearer {settings.SLACK_BOT_TOKEN}',
-        'Content-type': 'application/json; charset=utf-8',
+        "Authorization": f"Bearer {settings.SLACK_BOT_TOKEN}",
+        "Content-type": "application/json; charset=utf-8",
     }
-    url = 'https://slack.com/api/chat.postMessage'
+    url = "https://slack.com/api/chat.postMessage"
     payload = {
-        'channel': user_id,
-        'text': message,
+        "channel": user_id,
+        "text": message,
     }
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
         data = response.json()
-        if data.get('ok'):
+        if data.get("ok"):
             logger.info("Message sent successfully.")
         else:
             logger.error(f"Error sending DM: {data.get('error')}")
@@ -75,17 +77,20 @@ class Command(BaseCommand):
             auth_test_response = web_client.auth_test()
             logger.info(f"[startup] auth_test ok => {auth_test_response}")
         except SlackApiError as e:
-            logger.error(f"[startup] auth_test failed => {e.response['error']}", exc_info=True)
+            logger.error(
+                f"[startup] auth_test failed => {e.response['error']}", exc_info=True
+            )
             return
 
         logger.info("Initializing Slack SocketModeClient with SLACK_APP_TOKEN...")
         socket_mode_client = SocketModeClient(
-            app_token=settings.SLACK_APP_TOKEN,
-            web_client=web_client
+            app_token=settings.SLACK_APP_TOKEN, web_client=web_client
         )
 
         def process(client: SocketModeClient, req: SocketModeRequest):
-            logger.debug(f"[process] SocketModeRequest => type: {req.type}, payload: {req.payload}")
+            logger.debug(
+                f"[process] SocketModeRequest => type: {req.type}, payload: {req.payload}"
+            )
 
             ################################################################
             # (0) Slash Command 처리 로직
@@ -101,13 +106,18 @@ class Command(BaseCommand):
                         client.web_client.chat_postEphemeral(
                             channel=req.payload["channel_id"],
                             user=req.payload["user_id"],
-                            text=f"관리자 페이지 링크: {admin_link}"
+                            text=f"관리자 페이지 링크: {admin_link}",
                         )
                     except SlackApiError as e:
-                        logger.error(f"[slash_commands] Failed to respond: {e.response['error']}", exc_info=True)
+                        logger.error(
+                            f"[slash_commands] Failed to respond: {e.response['error']}",
+                            exc_info=True,
+                        )
 
                 # Slash Command 받은 뒤에는 반드시 ack 필요
-                client.send_socket_mode_response(SocketModeResponse(envelope_id=req.envelope_id))
+                client.send_socket_mode_response(
+                    SocketModeResponse(envelope_id=req.envelope_id)
+                )
                 return
 
             ################################################################
@@ -116,11 +126,15 @@ class Command(BaseCommand):
             if req.type == "events_api":
                 event = req.payload.get("event", {})
                 event_id = req.payload.get("event_id", "")
-                client.send_socket_mode_response(SocketModeResponse(envelope_id=req.envelope_id))
+                client.send_socket_mode_response(
+                    SocketModeResponse(envelope_id=req.envelope_id)
+                )
 
                 # 이미 처리한 event_id면 무시
                 if event_id in processed_events:
-                    logger.debug(f"[process] Duplicate event_id={event_id}. Skipping this event.")
+                    logger.debug(
+                        f"[process] Duplicate event_id={event_id}. Skipping this event."
+                    )
                     return
                 processed_events.add(event_id)
 
@@ -141,12 +155,16 @@ class Command(BaseCommand):
                 # (1) @앱 맨션을 받았을 때 (예: 채널)
                 ################################################################
                 if event_type == "app_mention":
-                    logger.debug(f"[process] Mention received: user_id={user_id}, text={user_message}")
+                    logger.debug(
+                        f"[process] Mention received: user_id={user_id}, text={user_message}"
+                    )
 
                     # 1) 메시지가 '!'로 끝나면 DM 로직
                     if user_message.strip().endswith("!"):
                         # handle_slack_event로 답변 생성
-                        response_text = handle_slack_event(user_message, user_id, channel_id)
+                        response_text = handle_slack_event(
+                            user_message, user_id, channel_id
+                        )
 
                         if response_text:
                             # DM 전송
@@ -155,54 +173,68 @@ class Command(BaseCommand):
                         # 채널에는 일반 메시지로 "DM으로 답변을 보냈습니다."
                         try:
                             client.web_client.chat_postMessage(
-                                channel=channel_id,
-                                text="DM으로 답변을 보냈습니다."
+                                channel=channel_id, text="DM으로 답변을 보냈습니다."
                             )
                         except SlackApiError as e:
-                            logger.error(f"[process] Failed to notify channel: {e.response['error']}", exc_info=True)
+                            logger.error(
+                                f"[process] Failed to notify channel: {e.response['error']}",
+                                exc_info=True,
+                            )
 
                     # 2) 메시지가 '!'로 끝나지 않을 때 → 스레드 답변
                     else:
-                        response_text = handle_slack_event(user_message, user_id, channel_id)
+                        response_text = handle_slack_event(
+                            user_message, user_id, channel_id
+                        )
                         if response_text:
                             try:
                                 # "로딩 중..." 메시지 없이 바로 스레드에 답변
                                 client.web_client.chat_postMessage(
                                     channel=channel_id,
                                     text=response_text,
-                                    thread_ts=event_ts
+                                    thread_ts=event_ts,
                                 )
                             except SlackApiError as e:
-                                logger.error(f"[process] Failed to send Slack channel message: {e.response['error']}", exc_info=True)
+                                logger.error(
+                                    f"[process] Failed to send Slack channel message: {e.response['error']}",
+                                    exc_info=True,
+                                )
 
                 ################################################################
                 # (2) DM(1:1 대화) 로직
                 ################################################################
                 elif event_type == "message" and channel_type == "im":
-                    logger.debug(f"[process] DM received: user={user_id}, text={user_message}")
+                    logger.debug(
+                        f"[process] DM received: user={user_id}, text={user_message}"
+                    )
 
                     # DM에서는 기존 로직 그대로 "로딩 중" -> 최종 답변 업데이트
                     try:
                         loading_res = client.web_client.chat_postMessage(
-                            channel=channel_id,
-                            text="적합한 자료를 모으는 중..."
+                            channel=channel_id, text="적합한 자료를 모으는 중..."
                         )
                         loading_ts = loading_res["ts"]
                     except SlackApiError as e:
-                        logger.error(f"[process] Failed to send loading (DM) message: {e.response['error']}", exc_info=True)
+                        logger.error(
+                            f"[process] Failed to send loading (DM) message: {e.response['error']}",
+                            exc_info=True,
+                        )
                         return
 
                     # 최종 답변 생성
-                    response_text = handle_slack_event(user_message, user_id, channel_id)
+                    response_text = handle_slack_event(
+                        user_message, user_id, channel_id
+                    )
                     if response_text:
                         try:
                             client.web_client.chat_update(
-                                channel=channel_id,
-                                ts=loading_ts,
-                                text=response_text
+                                channel=channel_id, ts=loading_ts, text=response_text
                             )
                         except SlackApiError as e:
-                            logger.error(f"[process] Failed to send Slack DM: {e.response['error']}", exc_info=True)
+                            logger.error(
+                                f"[process] Failed to send Slack DM: {e.response['error']}",
+                                exc_info=True,
+                            )
 
                 # 그 외 이벤트는 무시 (채널 일반 메시지, 파일 업로드 등)
 

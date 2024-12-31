@@ -1,11 +1,14 @@
+from django.conf import settings
 import logging
-from agent.services.role_service import get_user_role
-from agent.services.intent_service import classify_intent
-from agent.services.cot_service import apply_cot
-from agent.services.query_service import extract_sql_query, execute_sllm_generated_query
-from agent.services.format_service import get_formatted_response
+from agent.models import Employee, TeamManagement, CommonCode, AttendanceManagement
+from agent.services.role_service import get_user_role, get_access_level
+from django.db.models import Q
 
-logger = logging.getLogger("agent")
+# Django ORM에서 F 사용하려면 import 필요
+from django.db.models import F
+
+
+logger = logging.getLogger(__name__)
 
 
 def process_user_message(user_message: str, slack_id: str) -> str:
