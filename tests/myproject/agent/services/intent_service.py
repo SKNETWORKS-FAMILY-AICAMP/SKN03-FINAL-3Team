@@ -85,7 +85,6 @@ A: "NEED_DB"
 -------------------------------------------------------------------------------
 Finally, consider that any query not explicitly requiring internal/private records is "NO_DB".
 Answer with exactly "NEED_DB" or "NO_DB", nothing else.
-
 """
 
     try:

@@ -50,13 +50,7 @@ def process_user_message(
             "[process_user_message] (Step 3) Result=NEED_DB => execute_nl2sql_flow()"
         )
 
-        response = execute_nl2sql_flow(
-            user_message,
-            user_info,
-            access_level,
-            _extract_sql_from_ollama,
-            _is_sql_permitted,
-        )
+        response = execute_nl2sql_flow(user_message)
         logger.debug(
             f"[process_user_message] (Step 3) execute_nl2sql_flow response={response}"
         )
