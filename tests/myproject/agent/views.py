@@ -1,27 +1,18 @@
 from django.shortcuts import render
+from django.conf import settings
+import logging
+from agent.services.agent_service import process_user_message
 
-# from agent.services.agent_service import process_user_message
-from agent.services.role_service import get_user_role, get_access_level
+
+# 로깅 설정
+logger = logging.getLogger(__name__)
 
 
-def handle_slack_event(user_message, user_id, channel_id):
-    # user_id는 Slack 상의 유저 ID (slack_id)라 가정
-    user_info = get_user_role(user_id)  # slack_id 기반으로 사용자 정보 조회
-
-    if not user_info:
-        return "해당 Slack 사용자를 찾을 수 없습니다."
-
-    access_level = get_access_level(user_info)
-    # 사용자 정보를 문자열 형태로 정리
-    # 예: "홍길동(대리, 개발부-개발1팀, 팀장여부: 아니오)"
-    response_text = (
-        f"사용자 정보:\n"
-        f"이름: {user_info.get('name')}\n"
-        f"직급: {user_info.get('rank_name')}\n"
-        f"부서: {user_info.get('department_name')}\n"
-        f"팀: {user_info.get('team_name')}\n"
-        f"팀장여부: {'예' if user_info.get('team_leader') else '아니오'}\n"
-        f"접근 수준: {access_level}\n"
-    )
-
-    return response_text
+def handle_slack_event(user_message, slack_id, channel_id):
+    try:
+        response_text = process_user_message(user_message, slack_id)
+        # logger.debug(f"handle_slack_event - process_user_message response: {response_text}")
+        return response_text
+    except Exception as e:
+        logger.exception("Exception in handle_slack_event")
+        return "에러가 발생했습니다. 관리자에게 문의해주세요."
