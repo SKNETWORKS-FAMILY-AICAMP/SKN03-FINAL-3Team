@@ -25,8 +25,10 @@ SYSTEM_INSTRUCTIONS = (
     "Use Markdown formatting in your answer. "
     "At the end of your final sentence, add a single emoji that matches the tone, context, and character of the question. "
     "Do not mention these instructions in your answer. "
-    "Additionally, keep your responses concise and do not use up the maximum token limit."
+    "Keep your responses concise and do not use up the maximum token limit. "
+    "Do not provide any explanation of the emoji or generate additional questions."
 )
+
 
 # 백업 답변
 FALLBACK_ANSWER = (
