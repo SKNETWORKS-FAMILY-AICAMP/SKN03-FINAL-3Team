@@ -2,6 +2,7 @@
 
 import logging
 from typing import Dict, Any
+import re
 
 from agent.services.intent_service import classify_db_need
 from agent.services.chat_service import chat_with_agent
@@ -14,34 +15,59 @@ def process_user_message(
     user_message: str, user_info: Dict[str, Any], access_level: str
 ) -> str:
     """
-    1) Ollama 분류 모델로 'DB가 필요한 질문인지' 판별
+    1) Ollama 분류 모델로 'DB가 필요한 질문인지' 판별 (classify_db_need)
     2) DB 조회가 필요 없다면 => chat_with_agent() 호출
     3) DB 조회가 필요하다면 => execute_nl2sql_flow() 호출
     4) 최종 결과 문자열을 반환
     """
-    user_name = user_info.get("name")
-    rank_name = user_info.get("rank_name")
-    logger.debug(
-        f"[process_user_message] user={user_name}, rank={rank_name}, access_level={access_level}"
-    )
+    try:
+        user_name = user_info.get("name")
+        rank_name = user_info.get("rank_name")
 
-    # 1) 의도 분류
-    db_need_result = classify_db_need(user_message)  # "NEED_DB" or "NO_DB"
+        logger.debug(
+            f"[process_user_message] (Step 0) user={user_name}, rank={rank_name}, access_level={access_level}"
+        )
+        logger.debug(f"[process_user_message] (Step 0) user_message={user_message}")
 
-    # 2) DB 조회 불필요 => 일반(FAQ/잡담) 대화
-    if db_need_result == "NO_DB":
-        logger.info("[process_user_message] 일반 대화로 분류 => chat_with_agent()")
-        return chat_with_agent(user_message)
+        # (Step 1) 의도 분류
+        logger.info("[process_user_message] (Step 1) Classifying whether DB is needed.")
+        db_need_result = classify_db_need(user_message)  # "NEED_DB" or "NO_DB"
+        logger.debug(f"[process_user_message] (Step 1) db_need_result={db_need_result}")
 
-    # 3) DB 조회가 필요한 경우 => nl2sql flow
-    logger.info("[process_user_message] DB 조회 의도로 분류 => execute_nl2sql_flow()")
-    return execute_nl2sql_flow(
-        user_message,
-        user_info,
-        access_level,
-        _extract_sql_from_ollama,
-        _is_sql_permitted,
-    )
+        # (Step 2) DB 조회 불필요 => 일반(FAQ/잡담) 대화
+        if db_need_result == "NO_DB":
+            logger.info(
+                "[process_user_message] (Step 2) Result=NO_DB => chat_with_agent()"
+            )
+            response = chat_with_agent(user_message)
+            logger.debug(
+                f"[process_user_message] (Step 2) chat_with_agent response={response}"
+            )
+            return response
+
+        # (Step 3) DB 조회가 필요한 경우 => nl2sql flow
+        logger.info(
+            "[process_user_message] (Step 3) Result=NEED_DB => execute_nl2sql_flow()"
+        )
+
+        response = execute_nl2sql_flow(
+            user_message,
+            user_info,
+            access_level,
+            _extract_sql_from_ollama,
+            _is_sql_permitted,
+        )
+        logger.debug(
+            f"[process_user_message] (Step 3) execute_nl2sql_flow response={response}"
+        )
+        return response
+
+    except Exception as e:
+        logger.error(
+            "[process_user_message] Unexpected exception: %s", e, exc_info=True
+        )
+        # 사용자에게 노출할 오류 메시지(개발용/운영용 구분해서 변경 가능)
+        return "죄송합니다, 내부 오류가 발생했습니다."
 
 
 #

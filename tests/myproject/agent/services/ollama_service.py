@@ -1,98 +1,121 @@
 # agent/services/ollama_service.py
 
 import logging
+import json
 import requests
 
 logger = logging.getLogger("agent")
 
-# ---
-# Ollama 서버별 URL
-#  - 분류 모델: http://127.0.0.1:11411
-#  - Text2SQL : http://127.0.0.1:11413
-#  - (FAQ/챗봇 등 추가 모델 필요시 더 확장 가능)
-# ---
-OLLAMA_CLASSIFIER_URL = "http://127.0.0.1:11411/generate"
-# OLLAMA_API_URL_AGENT = "http://127.0.0.1:11412/generate"
-OLLAMA_TEXT2SQL_URL = "http://127.0.0.1:11413/generate"
+# ---------------------------------------------------------------------
+# Ollama 서버별 /api/generate 엔드포인트
+#  - (예) 분류:   http://127.0.0.1:11411/api/generate
+#  - (예) nl2sql: http://127.0.0.1:11413/api/generate
+#  - (예) 챗봇:   http://127.0.0.1:11412/api/generate
+# ---------------------------------------------------------------------
+OLLAMA_CLASSIFIER_URL = "http://127.0.0.1:11411/api/generate"
+OLLAMA_TEXT2SQL_URL = "http://127.0.0.1:11413/api/generate"
+OLLAMA_AGENT_URL = "http://127.0.0.1:11412/api/generate"
 
-# ---
-# Ollama에 등록된(또는 pull된) 모델 이름
-#  - 분류 모델: "llama3.2:latest"
-#  - Text2SQL : "hf.co/smoh17/SOLAR-KO-10.7B-text2sql-finetune-HRdata"
-# ---
+# Ollama에 등록되어 있는 모델 이름(이미 pull되어 있어야 함)
 CLASSIFIER_MODEL_NAME = "llama3.2:latest"
-
 TEXT2SQL_MODEL_NAME = "hf.co/smoh17/SOLAR-KO-10.7B-text2sql-finetune-HRdata"
+AGENT_MODEL_NAME = "my-agent-model:latest"
 
 
-def query_ollama_classifier(prompt: str, temperature=0.0, max_tokens=50) -> str:
+def call_ollama_stream(
+    url: str, model: str, prompt: str, temperature: float = 0.7, max_tokens: int = 256
+) -> str:
     """
-    분류(NEED_DB vs NO_DB 등)를 수행하는 모델 호출 예시
+    Ollama의 /api/generate 엔드포인트를 스트리밍 모드로 호출하여,
+    토큰별로 전달되는 JSON chunk를 합쳐 최종 문자열을 반환한다.
+
+    1) stream=True 로 요청
+    2) r.iter_lines()로 partial JSON 수신
+    3) `"response"` 필드를 누적, `"done": true` 시 종료
     """
-    return _query_ollama_base(
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        # "stream": False  # (만약 Ollama 버전이 지원한다면 비스트리밍 모드도 가능)
+    }
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        # 스트리밍 모드
+        with requests.post(
+            url, json=payload, headers=headers, stream=True, timeout=180
+        ) as resp:
+            if resp.status_code != 200:
+                logger.error(
+                    f"[call_ollama_stream] status={resp.status_code}, body={resp.text}"
+                )
+                return f"오류가 발생했습니다. (HTTP {resp.status_code})"
+
+            full_text = ""
+            for chunk in resp.iter_lines():
+                if chunk:
+                    data_str = chunk.decode("utf-8")
+                    # 예: {"model":"...","response":"...","done":false,...}
+                    try:
+                        data = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        logger.warning(
+                            f"[call_ollama_stream] JSON decode 실패 chunk={data_str}"
+                        )
+                        continue
+
+                    # partial 토큰 추가
+                    partial_text = data.get("response", "")
+                    full_text += partial_text
+
+                    # "done": true 면 중단
+                    if data.get("done", False):
+                        break
+            return full_text
+
+    except requests.exceptions.RequestException as e:
+        logger.exception("[call_ollama_stream] Ollama API 호출 중 예외 발생")
+        return "죄송합니다. LLM 서버와의 연결에 실패했습니다."
+
+
+def query_ollama_classifier(
+    prompt: str, temperature: float = 0.7, max_tokens: int = 256  # 기본값  # 기본값
+) -> str:
+    """
+    예: Ollama의 분류 모델을 사용
+    """
+    return call_ollama_stream(
         url=OLLAMA_CLASSIFIER_URL,
         model=CLASSIFIER_MODEL_NAME,
         prompt=prompt,
-        temperature=temperature,
-        max_tokens=max_tokens,
+        temperature=temperature,  # 여기서 인자 전달
+        max_tokens=max_tokens,  # 여기서 인자 전달
     )
 
 
-def query_ollama_nl2sql(prompt: str, temperature=0.0, max_tokens=512) -> str:
+def query_ollama_nl2sql(prompt: str) -> str:
     """
-    NL2SQL 전용 모델 호출 예시
+    DB 조회용 NL2SQL 모델
     """
-    return _query_ollama_base(
+    return call_ollama_stream(
         url=OLLAMA_TEXT2SQL_URL,
         model=TEXT2SQL_MODEL_NAME,
         prompt=prompt,
-        temperature=temperature,
-        max_tokens=max_tokens,
+        temperature=0.0,
+        max_tokens=512,
     )
 
 
-#
-# 필요하다면 FAQ/챗봇용 모델도 이런 식으로 추가:
-#
-# def query_ollama_agent(prompt: str, temperature=0.7, max_tokens=256) -> str:
-#     return _query_ollama_base(
-#         url="http://127.0.0.1:11412/generate",  # 예: 챗봇 모델용 포트
-#         model="my-agent-model:latest",
-#         prompt=prompt,
-#         temperature=temperature,
-#         max_tokens=max_tokens
-#     )
-
-
-def _query_ollama_base(
-    url: str, model: str, prompt: str, temperature: float, max_tokens: int
-) -> str:
+def query_ollama_agent(prompt: str) -> str:
     """
-    내부 헬퍼:
-    1) POST /generate 호출
-    2) JSON 바디에 "model": "<모델명>", "prompt": "<프롬프트>" 등 포함
-    3) Ollama 서버에서 결과 텍스트를 받아 반환
+    FAQ/챗봇 모델
     """
-    try:
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "model": model,  # <-- 핵심: 모델 이름 지정
-            "prompt": prompt,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
-
-        # Ollama 서버로 API 요청
-        response = requests.post(url, headers=headers, json=payload, timeout=60)
-
-        if response.status_code == 200:
-            return response.text
-        else:
-            logger.error(
-                f"[_query_ollama_base] status={response.status_code}, response={response.text}"
-            )
-            return "죄송합니다. LLM 응답 생성에 문제가 발생했습니다."
-
-    except Exception as e:
-        logger.exception("[_query_ollama_base] Ollama API 호출 중 예외 발생")
-        return "죄송합니다. LLM 서버와의 연결에 실패했습니다."
+    return call_ollama_stream(
+        url=OLLAMA_AGENT_URL,
+        model=AGENT_MODEL_NAME,
+        prompt=prompt,
+        temperature=0.7,
+        max_tokens=256,
+    )
