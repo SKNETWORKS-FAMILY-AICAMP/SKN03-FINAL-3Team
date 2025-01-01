@@ -1,19 +1,24 @@
 # agent/services/query_service.py
 
+import json
 import logging
-from agent.services.ollama_service import query_ollama_nl2sql
-from agent.services.format_service import get_formatted_response
+from agent.services.ollama_service import query_vllm_text2sql
 
 logger = logging.getLogger("agent")
 
 
 def execute_nl2sql_flow(
     user_message: str,
-    schema_text: str = "",
+    schema_text: str = """hrdatabase_employee: employee_id (INT), employee_name (VARCHAR(100)), employee_level (VARCHAR(10)), employment_type (VARCHAR(10)), email (VARCHAR(100)), hire_date (DATE), home_ownership (VARCHAR(10)), child_age (VARCHAR(20)), gender (VARCHAR(10))
+hrdatabase_attendancemanagement: employee_id (INT), total_late_days (INT), remaining_annual_leave (INT)
+hrdatabase_attendancerecords: record_id (INT), employee_id (INT), work_date (DATE), is_absent (BOOLEAN), late_minutes (INT), actual_check_in_time (DATETIME), actual_check_out_time (DATETIME)
+hrdatabase_welfarebenefitmanagement: employee_id (INT), childcare_used (BOOLEAN), company_housing (BOOLEAN), student_loan_used (BOOLEAN)
+hrdatabase_teammanagement: team_id (INT), employee_id (INT), department (VARCHAR(100)), team_leader_tenure (INT)
+""",
     max_new_tokens: int = 512,
-    temperature: float = 0.0,
-    # top_p: float = 0.9,
-    # repetition_penalty: float = 1.0,
+    temperature: float = 0.5,
+    top_p: float = 0.9,
+    repetition_penalty: float = 1.0,
     **generate_kwargs,
 ) -> str:
     """
@@ -25,6 +30,7 @@ def execute_nl2sql_flow(
 
     # (A) prompt 구성
     prompt = f"""Below is a concise summary of the database schema: {schema_text}
+
 IMPORTANT: UNDER NO CIRCUMSTANCES SHOULD YOU USE ROW_NUMBER() OR PARTITION. ALWAYS PREFER SIMPLE JOIN AND WHERE CONDITIONS. NO EXCEPTIONS.
 
 Now, You should convert the following user question into a SQL query.
@@ -37,7 +43,7 @@ Now, You should convert the following user question into a SQL query.
     # (B) 모델 호출 (ollama)
     try:
         # 모델에 prompt 전달
-        generated_text = query_ollama_nl2sql(
+        generated_text = query_vllm_text2sql(
             prompt=prompt,
             temperature=temperature,
             max_tokens=max_new_tokens,
