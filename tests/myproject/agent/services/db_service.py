@@ -18,7 +18,7 @@ def save_conversation(question, answer, team_id_str, keyword_data=None):
     """
     # 팀 ID 확인 및 조회
     try:
-        team_obj = hrdatabase_teammanagement.objects.get(team_id=team_id_str)
+        team_obj = hrdatabase_teammanagement.objects.filter(team_id=team_id_str).first()
     except hrdatabase_teammanagement.DoesNotExist:
         raise ValueError(f"Team ID '{team_id_str}' does not exist in the database.")
 
@@ -31,6 +31,6 @@ def save_conversation(question, answer, team_id_str, keyword_data=None):
         answer=answer,
         question_date=timezone.now().date(),
         team_id=team_obj,  # 외래키로 팀 객체 저장
-        keyword=keyword_str
+        keyword=keyword_str,
     )
     return record
