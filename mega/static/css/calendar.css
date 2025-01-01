@@ -4,7 +4,7 @@ dialog{
     margin: 0;
     z-index:100;
     padding: 30px;
-    background-color:beige;
+    background-color:  #dee6ef;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);

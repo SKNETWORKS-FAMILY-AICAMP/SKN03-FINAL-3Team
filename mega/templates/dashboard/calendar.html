@@ -17,6 +17,23 @@
   <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.15/index.global.min.js"></script>
   <!-- 내 로컬 calendar.css (옵션) -->
   <link rel="stylesheet" href="{% static 'css/calendar.css' %}">
+
+  <style>
+    dialog {
+      position: absolute;
+    }
+    .navbar-vertical .navbar-brand {
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+      margin: 0 !important;
+    }
+    .navbar-vertical .navbar-brand-img {
+      max-height: 6rem !important;
+      height: auto !important;
+      width: auto !important;
+      margin: 0 !important;
+    }
+  </style>
 </head>
 
 <body class="">
@@ -24,7 +41,8 @@
   <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white" id="sidenav-main">
     <div class="container-fluid">
       <!-- 토글(모바일) -->
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidenav-collapse-main">
+      <button class="navbar-toggler" type="button"
+              data-toggle="collapse" data-target="#sidenav-collapse-main">
         <span class="navbar-toggler-icon"></span>
       </button>
       <!-- 브랜드 로고 -->
@@ -39,7 +57,8 @@
           <a class="nav-link" href="#" role="button" data-toggle="dropdown">
             <div class="media align-items-center">
               <span class="avatar avatar-sm rounded-circle">
-                <img alt="Image placeholder" src="{{ user.socialaccount_set.first.get_avatar_url|default:'your_default_image_url' }}">
+                <img alt="Image placeholder"
+                     src="{{ user.socialaccount_set.first.get_avatar_url|default:'your_default_image_url' }}">
               </span>
             </div>
           </a>
@@ -56,8 +75,8 @@
               <i class="ni ni-user-run"></i>
               <span>Logout</span>
             </a>
-            {% endif %}
           </div>
+          {% endif %}
         </li>
       </ul>
 
@@ -71,7 +90,8 @@
               </a>
             </div>
             <div class="col-6 collapse-close">
-              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidenav-collapse-main">
+              <button class="navbar-toggler" type="button"
+                      data-toggle="collapse" data-target="#sidenav-collapse-main">
                 <span></span>
                 <span></span>
               </button>
@@ -81,7 +101,8 @@
         <!-- Search (모바일) -->
         <form class="mt-4 mb-3 d-md-none">
           <div class="input-group input-group-rounded input-group-merge">
-            <input class="form-control form-control-rounded form-control-prepended" placeholder="Search" type="search">
+            <input class="form-control form-control-rounded form-control-prepended"
+                   placeholder="Search" type="search">
             <div class="input-group-prepend">
               <div class="input-group-text">
                 <span class="fa fa-search"></span>
@@ -91,14 +112,28 @@
         </form>
         <!-- 네비게이션 메뉴 -->
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_dev' %}"><i class="ni ni-tv-2 text-primary"></i> 개발부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_marketing' %}"><i class="ni ni-pin-3 text-orange"></i> 마케팅부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_sales' %}"><i class="ni ni-single-02 text-yellow"></i> 영업부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_support' %}"><i class="ni ni-bullet-list-67 text-red"></i> 지원부</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'board_accounting' %}"><i class="ni ni-key-25 text-info"></i> 재무부</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'board_dev' %}">
+              <i class="ni ni-tv-2 text-primary"></i> 개발부
+            </a>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_marketing' %}">
+            <i class="ni ni-pin-3 text-orange"></i> 마케팅부
+          </a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_sales' %}">
+            <i class="ni ni-single-02 text-yellow"></i> 영업부
+          </a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_support' %}">
+            <i class="ni ni-bullet-list-67 text-red"></i> 지원부
+          </a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'board_accounting' %}">
+            <i class="ni ni-key-25 text-info"></i> 재무부
+          </a></li>
           <hr class="my-3">
           <li class="nav-item active">
-            <a class="nav-link active" href="{% url 'board_calendar' %}"><i class="ni ni-circle-08 text-pink"></i> 캘린더</a>
+            <a class="nav-link active" href="{% url 'board_calendar' %}">
+              <i class="ni ni-circle-08 text-pink"></i> 캘린더
+            </a>
           </li>
         </ul>
       </div>
@@ -214,14 +249,60 @@
     </div>
   </div>
 
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var calendarEl = document.getElementById('calendar');
+      let popup = document.querySelector('dialog');
+      
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          googleCalendarApiKey: "{{ google_calendar_api_key }}", // API 키 삽입
+          events: {
+              googleCalendarId: "{{ google_calendar_id }}" // 캘린더 ID 삽입
+          },
+          eventClick: function(info) {
+            // 이벤트 DOM 요소(해당 이벤트가 표시된 셀)의 좌표
+            const rect = info.el.getBoundingClientRect();
+    
+            // 팝업 내용
+            popup.querySelector('div').innerHTML = `
+              <h3>${info.event.title}</h3>
+              <div>${info.event.extendedProps.description || ''}</div>
+            `;
+    
+            // 스크롤 보정 후, 셀 왼쪽(left)과 같은 라인에 맞춤
+            const offsetX = window.scrollX + rect.left - 150;   // 셀 왼쪽
+            const offsetY = window.scrollY + rect.top - 80;    // 셀 위쪽
+    
+            // 팝업 왼쪽·위쪽 위치 지정 (위로부터 25px 정도 내려서 겹치지 않게)
+            popup.style.left = offsetX + 'px';
+            popup.style.top  = (offsetY + 25) + 'px';
+    
+            // 팝업 열기
+            popup.setAttribute('open', 'open');
+    
+            // 기본 동작(링크 이동) 막기
+            info.jsEvent.preventDefault();
+          }
+        });
+    
+        calendar.render();
+    
+        // 팝업 닫기 버튼
+        popup.querySelector('button').addEventListener('click', ()=> {
+          popup.removeAttribute('open');
+        });
+      });
+    </script>
+    
+
   <!-- Core JS -->
   <script src="{% static 'js/jquery.min.js' %}"></script>
   <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 
   <!-- Argon JS -->
   <script src="{% static 'js/argon-dashboard.min.js' %}"></script>
-
-  <!-- 내 로컬 calendar.js (옵션) -->
-  <script src="{% static 'js/calendar.js' %}"></script>
 </body>
 </html>

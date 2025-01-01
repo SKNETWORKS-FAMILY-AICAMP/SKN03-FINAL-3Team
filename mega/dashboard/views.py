@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from datetime import datetime, timedelta, date
 import calendar
+from config.settings import GOOGLE_CALENDAR_API_KEY, GOOGLE_CALENDAR_ID
 
 from .models import (
     hrdatabase_employee,
@@ -372,3 +373,14 @@ def board_common(request, dept_slug):
         'sort_dir': sort_dir,
     }
     return render(request, f'dashboard/board_{dept_slug}.html', context)
+
+
+
+@login_required
+def board_calendar(request):
+    context = {
+        'google_calendar_api_key': GOOGLE_CALENDAR_API_KEY,
+        'google_calendar_id': GOOGLE_CALENDAR_ID,
+    }
+    return render(request, 'dashboard/calendar.html', context)
+
