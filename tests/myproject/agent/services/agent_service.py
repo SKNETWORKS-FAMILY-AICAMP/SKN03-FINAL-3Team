@@ -3,94 +3,82 @@
 import logging
 from typing import Dict, Any
 import re
+from django.conf import settings
 
 from agent.services.intent_service import classify_db_need
 from agent.services.chat_service import chat_with_agent
+from agent.services.utils import get_connection_params
 from agent.services.query_service import execute_nl2sql_flow
+from agent.services.sql_service import (
+    restrict_sql_query_by_access,
+    load_db_schema,
+    run_sql_with_auto_fix,
+)
 
 logger = logging.getLogger("agent")
 
+# 여기에 DB 실행 함수(run_sql_query)나, 혹은 ORM 방식 코드가 들어갈 수도 있습니다.
+# 예: from agent.services.db_service import run_sql_query
+
 
 def process_user_message(
-    user_message: str, user_info: Dict[str, Any], access_level: str
+    user_message: str,
+    user_info: Dict[str, Any],
+    access_level: str,
 ) -> str:
     """
-    1) Ollama 분류 모델로 'DB가 필요한 질문인지' 판별 (classify_db_need)
-    2) DB 조회가 필요 없다면 => chat_with_agent() 호출
-    3) DB 조회가 필요하다면 => execute_nl2sql_flow() 호출
-    4) 최종 결과 문자열을 반환
+    1) 'DB가 필요한지' 의도 분류 (classify_db_need)
+    2) NO_DB -> chat_with_agent()
+    3) NEED_DB -> execute_nl2sql_flow() 로 SQL 생성
+       -> restrict_sql_query_by_access() 로 권한별 WHERE 제한
+       -> (새로 추가) 실제 DB에 쿼리 실행 (오류 시 자동 수정 & 재시도)
+    4) 결과 문자열을 반환
     """
     try:
-        user_name = user_info.get("name")
-        rank_name = user_info.get("rank_name")
-
         logger.debug(
-            f"[process_user_message] (Step 0) user={user_name}, rank={rank_name}, access_level={access_level}"
+            f"[process_user_message] user_info={user_info}, access_level={access_level}"
         )
-        logger.debug(f"[process_user_message] (Step 0) user_message={user_message}")
+        logger.debug(f"[process_user_message] user_message={user_message}")
 
-        # (Step 1) 의도 분류
-        logger.info("[process_user_message] (Step 1) Classifying whether DB is needed.")
+        # (Step 1) DB 필요 여부 분류
         db_need_result = classify_db_need(user_message)  # "NEED_DB" or "NO_DB"
-        logger.debug(f"[process_user_message] (Step 1) db_need_result={db_need_result}")
+        logger.debug(f"db_need_result={db_need_result}")
 
-        # (Step 2) DB 조회 불필요 => 일반(FAQ/잡담) 대화
+        # (Step 2) DB 조회 불필요 => 일반 대화
         if db_need_result == "NO_DB":
-            logger.info(
-                "[process_user_message] (Step 2) Result=NO_DB => chat_with_agent()"
-            )
             response = chat_with_agent(user_message)
-            logger.debug(
-                f"[process_user_message] (Step 2) chat_with_agent response={response}"
-            )
             return response
 
-        # (Step 3) DB 조회가 필요한 경우 => nl2sql flow
-        logger.info(
-            "[process_user_message] (Step 3) Result=NEED_DB => execute_nl2sql_flow()"
-        )
+        # (Step 3-A) NL2SQL
+        sql_query = execute_nl2sql_flow(user_message)
+        logger.debug(f"raw sql_query={sql_query}")
 
-        response = execute_nl2sql_flow(user_message)
-        logger.debug(
-            f"[process_user_message] (Step 3) execute_nl2sql_flow response={response}"
+        # (Step 3-B) 권한별 WHERE 제한
+        final_sql = restrict_sql_query_by_access(sql_query, user_info, access_level)
+        if not final_sql:
+            return "해당 쿼리에 접근할 권한이 없습니다."
+
+        logger.debug(f"final_sql={final_sql}")
+
+        # (Step 3-C) 실제 DB 실행 + 오류 자동 수정
+        # Django settings.py에서 DB 설정 읽어오기
+        connection_params = get_connection_params(db_alias="default")
+
+        # DB 스키마(테이블/컬럼) 정보 로드
+        db_tables, db_columns = load_db_schema(connection_params, "hrdatabase")
+
+        # 자동 수정 기능까지 포함된 실행
+        run_result = run_sql_with_auto_fix(
+            final_sql,
+            connection_params,
+            db_tables,
+            db_columns,
+            max_retries=2,  # 1~2회 정도 권장
         )
-        return response
+        return run_result
 
     except Exception as e:
         logger.error(
             "[process_user_message] Unexpected exception: %s", e, exc_info=True
         )
-        # 사용자에게 노출할 오류 메시지(개발용/운영용 구분해서 변경 가능)
         return "죄송합니다, 내부 오류가 발생했습니다."
-
-
-#
-# 아래 2개 헬퍼 함수는 agent_service.py 내부에 두어도 되고, 별도 파일로 분리해도 됩니다.
-#
-
-
-def _extract_sql_from_ollama(nl2sql_response: str) -> str:
-    """
-    Ollama nl2sql 모델 응답에서 SQL 문을 추출하는 예시.
-    실제로는 JSON 응답, 다른 구분자 등을 쓸 수 있음.
-    """
-    import re
-
-    pattern = r"```sql\s*(.*?)\s*```"
-    match = re.search(pattern, nl2sql_response, flags=re.DOTALL | re.IGNORECASE)
-    if match:
-        return match.group(1).strip()
-    # fallback
-    return nl2sql_response.strip()
-
-
-def _is_sql_permitted(sql_query: str, access_level: str) -> bool:
-    """
-    단순 예시: admin 아닌 경우 특정 테이블 차단
-    """
-    restricted_tables = ["financial", "executives"]
-    if access_level != "admin":
-        for tbl in restricted_tables:
-            if tbl in sql_query.lower():
-                return False
-    return True
