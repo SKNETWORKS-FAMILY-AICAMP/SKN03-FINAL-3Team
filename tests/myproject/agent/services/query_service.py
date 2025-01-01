@@ -1,5 +1,18 @@
 # agent/services/query_service.py
 
+from typing import Dict, Any
+import sqlparse
+import re
+from sqlparse.sql import (
+    Statement,
+    TokenList,
+    Where,
+    Parenthesis,
+    IdentifierList,
+    Identifier,
+    Comparison,
+)
+from sqlparse.tokens import Keyword, DML, Whitespace, Punctuation
 import json
 import logging
 from agent.services.ollama_service import query_vllm_text2sql

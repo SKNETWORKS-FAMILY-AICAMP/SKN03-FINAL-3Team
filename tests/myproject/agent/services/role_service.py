@@ -8,6 +8,7 @@ from agent.models import (
 def get_user_role(slack_id: str) -> dict:
     """
     주어진 Slack ID를 바탕으로 다음 정보를 반환한다.
+    - employee_id: 직원 ID
     - name: 직원 이름
     - rank_name: 직급명
     - department_name: 부서명
@@ -61,6 +62,7 @@ def get_user_role(slack_id: str) -> dict:
                 department_name = "알 수 없음(미등록 부서 코드)"
 
     return {
+        "employee_id": employee.employee_id,  # <-- employee_id 추가
         "name": employee.employee_name,  # hrdatabase_employee.employee_name
         "rank_name": rank_name,
         "department_name": department_name,
