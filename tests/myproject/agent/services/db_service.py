@@ -52,7 +52,7 @@ def save_conversation(question, answer, team_id_str, keyword_data=None):
         question=question,
         answer=answer,
         question_date=timezone.now().date(),
-        team_id=team_obj,
-        keyword=keyword_str
+        team_id=team_obj,  # 외래키로 팀 객체 저장
+        keyword=keyword_str,
     )
     return record
