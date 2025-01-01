@@ -1,14 +1,14 @@
-## agent/services/sql_service.py
+# agent/services/sql_service.py
 
 import logging
-import mysql.connector
+import MySQLdb
 import re
 import sqlparse
 import tabulate
+
+from MySQLdb import Error as MySQLError
 from difflib import get_close_matches
 from typing import Dict, Any, List, Tuple, Optional
-
-from mysql.connector import errorcode
 from sqlparse.sql import (
     Comparison,
     Identifier,
@@ -23,6 +23,14 @@ from sqlparse.tokens import DML, Keyword, Punctuation, Whitespace
 logger = logging.getLogger("agent")
 
 
+###############################
+# MySQL 에러 코드 (mysqlclient용)
+###############################
+ER_SYNTAX_ERROR = 1064  # SQL 문법 오류
+ER_BAD_FIELD_ERROR = 1054  # Unknown column
+ER_NO_SUCH_TABLE = 1146  # Table doesn't exist
+
+
 def restrict_sql_query_by_access(
     sql_query: str, user_info: Dict[str, Any], access_level: str
 ) -> str:
@@ -31,36 +39,49 @@ def restrict_sql_query_by_access(
     2) 필요 시 WHERE 절 추가
     3) 권한이 없는 경우 ""(빈 문자열) 리턴 (접근 거부)
 
-    실제로는 'WHERE' 절이 이미 있는지 확인한 뒤 'AND'로 붙여야 합니다.
-    또한, 여러 테이블 조인/alias 등이 있는 경우 복잡한 파싱이 필요합니다.
+    ※ 'DEPARTMENT_ACCESS' 일 때, hrdatabase_employee 테이블을
+    hrdatabase_teammanagement 와 JOIN 해서, t.department=? 조건을 거는 예시.
     """
-    # 1) 권한 안내 문구
     if access_level == "ALL_ACCESS":
         print("모든 정보에 접근 가능합니다. (WHERE 조건 없음)")
-        # 전체 접근 가능, 쿼리 그대로 반환
         return sql_query
 
     elif access_level == "DEPARTMENT_ACCESS":
         print("같은 부서 정보에 한해 접근 가능합니다.")
         department_name = user_info.get("department_name")
-        # 간단 예: WHERE department_name='?'
+
+        # (A) 만약 기존에 FROM hrdatabase_employee가 있으면 -> JOIN 구문으로 치환
+        #     naive(단순) 치환: "FROM hrdatabase_employee" →
+        #        "FROM hrdatabase_employee e JOIN hrdatabase_teammanagement t ON e.employee_id = t.employee_id"
+        joined_query = sql_query.replace(
+            "FROM hrdatabase_employee",
+            "FROM hrdatabase_employee e JOIN hrdatabase_teammanagement t ON e.employee_id = t.employee_id",
+        )
+
+        # (B) WHERE 절은 "t.department='...'"
         return append_where_condition_sqlparse(
-            sql_query, f"department_name='{department_name}'"
+            joined_query, f"t.department='{department_name}'"
         )
 
     elif access_level == "TEAM_ACCESS":
         print("같은 팀 정보에 한해 접근 가능합니다.")
         team_name = user_info.get("team_name")
-        return append_where_condition_sqlparse(sql_query, f"team_name='{team_name}'")
+
+        # 팀 정보도 teammanagement에 있다고 가정해,
+        # hrdatabase_employee → JOIN hrdatabase_teammanagement
+        joined_query = sql_query.replace(
+            "FROM hrdatabase_employee",
+            "FROM hrdatabase_employee e JOIN hrdatabase_teammanagement t ON e.employee_id = t.employee_id",
+        )
+
+        return append_where_condition_sqlparse(joined_query, f"t.team_id='{team_name}'")
 
     elif access_level == "SELF_ONLY":
         print("본인 정보만 접근 가능합니다.")
         employee_id = user_info.get("employee_id", 0)
-        # employee_id가 0이면 비정상 → 여기서는 그대로 WHERE 0 적용 (결과 없음) 또는 에러 처리
         return append_where_condition_sqlparse(sql_query, f"employee_id={employee_id}")
 
     else:
-        # 모르는 권한인 경우
         print("접근 권한이 없습니다.")
         return ""
 
@@ -243,27 +264,31 @@ def load_db_schema(connection_params: dict, db_name: str):
     all_tables: [table_name, ...]
     all_columns: [(table_name, column_name), ...]
     """
-    conn = mysql.connector.connect(**connection_params)
+    conn = MySQLdb.connect(
+        host=connection_params["host"],
+        user=connection_params["user"],
+        passwd=connection_params["password"],
+        db=db_name,
+        port=connection_params.get("port", 3306),
+    )
     cursor = conn.cursor()
 
-    # 테이블 목록
     cursor.execute(
         """
         SELECT table_name
         FROM information_schema.tables
         WHERE table_schema = %s
-    """,
+        """,
         (db_name,),
     )
     all_tables = [row[0] for row in cursor.fetchall()]
 
-    # 컬럼 목록
     cursor.execute(
         """
         SELECT table_name, column_name
         FROM information_schema.columns
         WHERE table_schema = %s
-    """,
+        """,
         (db_name,),
     )
     all_columns = cursor.fetchall()
@@ -366,24 +391,21 @@ def format_rows_as_markdown_table(rows, cursor) -> str:
     return tabulate.tabulate(rows, headers=col_names, tablefmt="github")
 
 
-def parse_mysql_error(e: mysql.connector.Error, sql_query: str) -> str:
+def parse_mysql_error(err_code: int, err_msg: str, sql_query: str) -> str:
     """
-    에러코드별로 간단히 메시지를 가공
+    MySQLdb.Error에서 code, msg를 추출하여 메시지 생성
     """
-    err_code = e.errno
-    err_msg = str(e)
-
-    if err_code == errorcode.ER_SYNTAX_ERROR:
+    if err_code == ER_SYNTAX_ERROR:
         return (
             f"SQL 문법 오류입니다.\n" f"오류 메시지: {err_msg}\n" f"쿼리: {sql_query}"
         )
-    elif err_code == errorcode.ER_BAD_FIELD_ERROR:
+    elif err_code == ER_BAD_FIELD_ERROR:
         return (
             f"존재하지 않는 컬럼으로 인해 오류가 발생했습니다.\n"
             f"오류 메시지: {err_msg}\n"
             f"쿼리: {sql_query}"
         )
-    elif err_code == errorcode.ER_NO_SUCH_TABLE:
+    elif err_code == ER_NO_SUCH_TABLE:
         return (
             f"존재하지 않는 테이블로 인해 오류가 발생했습니다.\n"
             f"오류 메시지: {err_msg}\n"
@@ -404,24 +426,22 @@ def run_sql_with_auto_fix(
     db_columns: List[Tuple[str, str]],
     max_retries=1,
 ) -> str:
-    """
-    1) sql_query 실행
-    2) 테이블/컬럼 없음 에러 발생 시, 오탈자 자동 수정 → 재시도
-    3) 최대 max_retries 번 시도 후 실패 시 마지막 에러 반환
-    4) SELECT 결과를 Markdown 테이블로 반환. INSERT/UPDATE면 "쿼리 실행 성공" 메시지
-    """
     attempts = 0
     current_sql = sql_query
 
     while attempts <= max_retries:
         try:
-            conn = mysql.connector.connect(**connection_params)
+            conn = MySQLdb.connect(
+                host=connection_params["host"],
+                user=connection_params["user"],
+                passwd=connection_params["password"],
+                db=connection_params["database"],
+                port=connection_params.get("port", 3306),
+            )
             cursor = conn.cursor()
 
-            # 실행
             cursor.execute(current_sql)
 
-            # SELECT -> fetch
             if current_sql.strip().lower().startswith("select"):
                 rows = cursor.fetchall()
                 result_str = format_rows_as_markdown_table(rows, cursor)
@@ -431,20 +451,18 @@ def run_sql_with_auto_fix(
 
             cursor.close()
             conn.close()
-            return result_str  # 성공 시 반환
+            return result_str
 
-        except mysql.connector.Error as e:
-            err_code = e.errno
+        except MySQLError as e:
+            err_code = e.args[0] if e.args else None
             err_msg = str(e)
 
-            # 오탈자 자동 수정 가능?
-            if err_code in (errorcode.ER_NO_SUCH_TABLE, errorcode.ER_BAD_FIELD_ERROR):
+            # 오탈자 자동 수정 가능 여부
+            if err_code in (ER_NO_SUCH_TABLE, ER_BAD_FIELD_ERROR):
                 if attempts < max_retries:
-                    # 테이블/컬럼 추출
                     unknown_tbl = extract_unknown_table(err_msg)
                     unknown_col = extract_unknown_column(err_msg)
 
-                    # 유사 이름 찾기
                     new_tbl = (
                         find_similar_table(unknown_tbl, db_tables)
                         if unknown_tbl
@@ -455,7 +473,6 @@ def run_sql_with_auto_fix(
                         col_suggestion = find_similar_column(unknown_col, db_columns)
                     new_col = col_suggestion[0] if col_suggestion else None
 
-                    # 자동 교정 대상이 하나라도 있다면 치환 후 재시도
                     if (unknown_tbl and new_tbl) or (unknown_col and new_col):
                         fixed_sql = auto_fix_sql_query(
                             current_sql,
@@ -466,19 +483,14 @@ def run_sql_with_auto_fix(
                         )
                         current_sql = fixed_sql
                         attempts += 1
-                        continue  # 재시도
+                        continue
                     else:
-                        # 추천할 게 없으면 그냥 종료
-                        return parse_mysql_error(e, current_sql)
+                        return parse_mysql_error(err_code, err_msg, current_sql)
                 else:
-                    # 재시도 불가
-                    return parse_mysql_error(e, current_sql)
+                    return parse_mysql_error(err_code, err_msg, current_sql)
             else:
-                # 오탈자 외의 다른 DB 오류이므로 종료
-                return parse_mysql_error(e, current_sql)
-
+                return parse_mysql_error(err_code, err_msg, current_sql)
         except Exception as ex:
             return f"알 수 없는 오류가 발생했습니다: {str(ex)}"
 
-    # 여기까지 오지 않지만, 혹시 모를 루프 탈출
     return "쿼리 실행 중 알 수 없는 문제가 발생했습니다."

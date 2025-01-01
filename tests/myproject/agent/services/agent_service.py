@@ -3,12 +3,16 @@
 import logging
 from typing import Dict, Any
 import re
+from django.conf import settings
 
 from agent.services.intent_service import classify_db_need
 from agent.services.chat_service import chat_with_agent
-from agent.services.query_service import (
-    execute_nl2sql_flow,
+from agent.services.utils import get_connection_params
+from agent.services.query_service import execute_nl2sql_flow
+from agent.services.sql_service import (
     restrict_sql_query_by_access,
+    load_db_schema,
+    run_sql_with_auto_fix,
 )
 
 logger = logging.getLogger("agent")
@@ -57,14 +61,8 @@ def process_user_message(
         logger.debug(f"final_sql={final_sql}")
 
         # (Step 3-C) 실제 DB 실행 + 오류 자동 수정
-        #   - 아래 connection_params는 실제 환경에 맞춰 설정
-        connection_params = {
-            "host": "127.0.0.1",
-            "user": "root",
-            "password": "my_password",
-            "database": "hrdatabase",
-            "port": 3306,
-        }
+        # Django settings.py에서 DB 설정 읽어오기
+        connection_params = get_connection_params(db_alias="default")
 
         # DB 스키마(테이블/컬럼) 정보 로드
         db_tables, db_columns = load_db_schema(connection_params, "hrdatabase")
@@ -75,7 +73,7 @@ def process_user_message(
             connection_params,
             db_tables,
             db_columns,
-            max_retries=1,  # 1~2회 정도 권장
+            max_retries=2,  # 1~2회 정도 권장
         )
         return run_result
 
