@@ -55,7 +55,11 @@ def custom_logout(request):
 
 @login_required
 def board_calendar(request):
-    return render(request, 'dashboard/calendar.html')
+    context = {
+        'google_calendar_api_key': GOOGLE_CALENDAR_API_KEY,
+        'google_calendar_id': GOOGLE_CALENDAR_ID,
+    }
+    return render(request, 'dashboard/calendar.html', context)
 
 
 TEAM_ID_MAP = {
@@ -79,13 +83,11 @@ RANK_MAP = {
     "RANK04": "과장", "RANK05": "차장", "RANK06": "부장",
 }
 
-
 def get_monday(d: date) -> date:
     """주어진 날짜 d가 속한 주의 월요일을 반환"""
     while d.weekday() != 0:  # 0=Monday, 6=Sunday
         d -= timedelta(days=1)
     return d
-
 
 @login_required
 def board_common(request, dept_slug):
@@ -165,27 +167,65 @@ def board_common(request, dept_slug):
     wpage_minus_1 = wpage - 1
 
     # -----------------------
-    # 2) 반려 질문, 직원목록, 키워드
+    # 2) 반려 질문(미응답) 월 이동 로직
     # -----------------------
     default_year  = today.year
     default_month = today.month
 
-    year  = request.GET.get('year', default_year)
-    month = request.GET.get('month', default_month)
+    # (A) 반려 질문 전용 년/월 파라미터: ryear, rmonth
+    r_year  = request.GET.get('ryear', default_year)
+    r_month = request.GET.get('rmonth', default_month)
     try:
-        year  = int(year)
-        month = int(month)
-        if not (1 <= month <= 12):
+        r_year  = int(r_year)
+        r_month = int(r_month)
+        if not (1 <= r_month <= 12):
             raise ValueError
     except:
-        year  = default_year
-        month = default_month
+        r_year  = default_year
+        r_month = default_month
 
-    start_of_month = date(year, month, 1)
-    last_day = calendar.monthrange(year, month)[1]
-    end_of_month = date(year, month, last_day)
+    # (B) 해당 달의 시작·끝
+    r_start_of_month = date(r_year, r_month, 1)
+    r_last_day = calendar.monthrange(r_year, r_month)[1]
+    r_end_of_month = date(r_year, r_month, r_last_day)
 
-    # 키워드용
+    # (C) 이전 달, 다음 달 계산
+    if r_month == 1:
+        r_prev_year  = r_year - 1
+        r_prev_month = 12
+    else:
+        r_prev_year  = r_year
+        r_prev_month = r_month - 1
+
+    if r_month == 12:
+        r_next_year  = r_year + 1
+        r_next_month = 1
+    else:
+        r_next_year  = r_year
+        r_next_month = r_month + 1
+
+    # (D) 실제 DB에서 반려 질문 조회
+    rejected_qs = (
+        hrdatabase_chatbotconversations.objects
+        .filter(
+            answer="해당 질문은 대답할 수 없습니다.",
+            team_id__team_id__in=team_ids,
+            question_date__range=(r_start_of_month, r_end_of_month)
+        )
+        .order_by('-question_date')
+    )
+    cleaned_rejected = []
+    for obj in rejected_qs:
+        q_text = obj.question.lstrip() if obj.question else ""
+        cleaned_rejected.append({
+            'conversation_id': obj.conversation_id,
+            'question': q_text,
+            'question_date': obj.question_date,
+        })
+
+    # -----------------------
+    # 3) 키워드(질문) 월 이동 로직 (기존)
+    # -----------------------
     kyear  = request.GET.get('kyear', default_year)
     kmonth = request.GET.get('kmonth', default_month)
     try:
@@ -215,13 +255,15 @@ def board_common(request, dept_slug):
         k_next_year  = kyear
         k_next_month = kmonth + 1
 
-    # 현재 달 기준 넘어가면 비활성화
+    # 다음 달 이동 비활성화 여부
     if (k_next_year > default_year) or (k_next_year == default_year and k_next_month > default_month):
         next_k_disabled = True
     else:
         next_k_disabled = False
 
-    # 직원 목록
+    # -----------------------
+    # 4) 직원 목록, 정렬, 키워드 분석 등 기존 로직
+    # -----------------------
     dev_members = (
         hrdatabase_teammanagement.objects
         .filter(team_id__in=team_ids)
@@ -284,26 +326,7 @@ def board_common(request, dept_slug):
     paginator = Paginator(employee_data, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    # 반려 질문 목록
-    rejected_qs = (
-        hrdatabase_chatbotconversations.objects
-        .filter(
-            answer="해당 질문은 대답할 수 없습니다.",
-            team_id__team_id__in=team_ids,
-            question_date__range=(start_of_month, end_of_month)
-        )
-        .order_by('-question_date')
-    )
-    cleaned_rejected = []
-    for obj in rejected_qs:
-        q_text = obj.question.lstrip() if obj.question else ""
-        cleaned_rejected.append({
-            'conversation_id': obj.conversation_id,
-            'question': q_text,
-            'question_date': obj.question_date,
-        })
-
-    # 키워드: Top5, Top10
+    # 키워드: Top5 & Top10
     keyword_qs = (
         hrdatabase_chatbotconversations.objects
         .filter(
@@ -322,18 +345,20 @@ def board_common(request, dept_slug):
         except:
             pass
 
+    from collections import Counter
     counter = Counter(all_keywords)
 
-    # Top5
     top5 = counter.most_common(5)
     top5_labels = [x[0] for x in top5]
     top5_values = [x[1] for x in top5]
 
-    # Top10
     top10 = counter.most_common(10)
     top10_labels = [x[0] for x in top10]
     top10_values = [x[1] for x in top10]
 
+    # -----------------------
+    # 5) 템플릿에 전달할 context
+    # -----------------------
     context = {
         # --- 주별 통계(4주) ---
         'labels': weekly_labels,
@@ -347,15 +372,19 @@ def board_common(request, dept_slug):
         'wpage_minus_1': wpage_minus_1,
         'wpage': wpage,
 
-        # 반려 질문
+        # --- 반려 질문(월 이동) ---
         'rejected_questions': cleaned_rejected,
-        'this_year': year,
-        'this_month': month,
+        'r_year':  r_year,
+        'r_month': r_month,
+        'r_prev_year':  r_prev_year,
+        'r_prev_month': r_prev_month,
+        'r_next_year':  r_next_year,
+        'r_next_month': r_next_month,
 
         # 직원 목록
         'page_obj': page_obj,
 
-        # 키워드 차트 (Top5 & Top10)
+        # --- 키워드 차트 (Top5 & Top10) ---
         'kyear':  kyear,
         'kmonth': kmonth,
         'keyword_labels_top5':  top5_labels,
@@ -368,19 +397,8 @@ def board_common(request, dept_slug):
         'k_next_month': k_next_month,
         'next_k_disabled': next_k_disabled,
 
-        # 정렬 파라미터
+        # 서버 정렬 파라미터
         'sort_col': sort_col,
         'sort_dir': sort_dir,
     }
     return render(request, f'dashboard/board_{dept_slug}.html', context)
-
-
-
-@login_required
-def board_calendar(request):
-    context = {
-        'google_calendar_api_key': GOOGLE_CALENDAR_API_KEY,
-        'google_calendar_id': GOOGLE_CALENDAR_ID,
-    }
-    return render(request, 'dashboard/calendar.html', context)
-
