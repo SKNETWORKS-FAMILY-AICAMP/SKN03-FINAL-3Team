@@ -1,0 +1,16 @@
+dialog{
+    position: fixed;
+    width: 300px;
+    margin: 0;
+    z-index:100;
+    padding: 30px;
+    background-color:beige;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 2px 2px 5px rgba(0,0,0,.5);
+    border: none;
+    border-radius: 10px;
+}
+
+ 

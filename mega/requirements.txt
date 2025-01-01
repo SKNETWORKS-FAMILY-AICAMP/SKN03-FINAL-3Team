@@ -2,3 +2,17 @@ django
 pymysql
 gunicorn
 boto3
+drf-spectacular
+requests
+openai
+flask
+drf_spectacular_sidecar
+mysqlclient
+google-api-python-client 
+google-auth-httplib2 
+google-auth-oauthlib
+django-allauth
+PyJWT
+cryptography
+pandas
+slack_sdk

@@ -1,0 +1,46 @@
+코드,상위코드,코드명칭,코드 설명
+RANK,,rank,직원 직급
+RANK01,RANK,사원,직급: 사원
+RANK02,RANK,주임,직급: 주임
+RANK03,RANK,대리,직급: 대리
+RANK04,RANK,과장,직급: 과장
+RANK05,RANK,차장,직급: 차장
+RANK06,RANK,부장,직급: 부장
+TYPE,,employment_type,고용 형태
+TYPE01,TYPE,정규직,고용형태: 정규직
+TYPE02,TYPE,계약직,고용형태: 계약직
+GEN,,gender,성별
+GEN01,GEN,남성,성별: 남성
+GEN02,GEN,여성,성별: 여성
+MIL,,reserve_military,예비군/민방위 여부
+MIL01,MIL,해당없음,예비군/민방위 없음
+MIL02,MIL,예비군,예비군
+MIL03,MIL,민방위,민방위
+FAM,,family_info,결혼여부
+FAM01,FAM,미혼,결혼여부: 미혼
+FAM02,FAM,기혼,결혼여부: 기혼
+HOME,,home_ownership 여부,자택보유 여부
+HOME01,HOME,보유,자택보유: 보유
+HOME02,HOME,미보유,자택보유: 미보유
+DEPT,,department,소속 부서
+DEPT01,DEPT,지원부,부서: 지원부
+DEPT02,DEPT,개발부,부서: 개발부
+DEPT03,DEPT,마케팅부,부서: 마케팅부
+DEPT04,DEPT,영업부,부서: 영업부
+DEPT05,DEPT,재무부,부서: 재무부
+TEAM,,team,소속 팀
+TEAM01,TEAM,인사팀,소속팀: 인사팀
+TEAM02,TEAM,지원팀,소속팀: 지원팀
+TEAM03,TEAM,후생관리팀,소속팀: 후생관리팀
+TEAM04,TEAM,개발1팀,소속팀: 개발1팀
+TEAM05,TEAM,개발2팀,소속팀: 개발2팀
+TEAM06,TEAM,개발3팀,소속팀: 개발3팀
+TEAM07,TEAM,기획팀,소속팀: 기획팀
+TEAM08,TEAM,전략팀,소속팀: 전략팀
+TEAM09,TEAM,디지털마케팅팀,소속팀: 디지털마케팅팀
+TEAM10,TEAM,국내영업팀,소속팀: 국내영업팀
+TEAM11,TEAM,해외영업팀,소속팀: 해외영업팀
+TEAM12,TEAM,B2B영업팀, 소속팀: B2B영업팀
+TEAM13,TEAM,회계팀,소속팀: 회계팀
+TEAM14,TEAM,재무기획팀,소속팀: 재무기획팀
+TEAM15,TEAM,예산관리팀,소속팀: 예산관리팀

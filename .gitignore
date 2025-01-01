@@ -20,4 +20,6 @@ db.sqlite3
 venv/
 .venv/
 
-.env
+credentials.json
+
+.DS_Store
