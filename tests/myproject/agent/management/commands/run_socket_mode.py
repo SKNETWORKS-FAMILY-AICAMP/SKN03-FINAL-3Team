@@ -99,7 +99,7 @@ class Command(BaseCommand):
                 command = req.payload.get("command")
                 if command == "/관리자":
                     # 원하는 링크 주소 (예: 대시보드)
-                    admin_link = "http://127.0.0.1:8000/"
+                    admin_link = "https://www.ohmega.click/"
 
                     try:
                         # Slash Command 응답 (ephemeral로 보낼 경우 chat_postEphemeral 사용)
