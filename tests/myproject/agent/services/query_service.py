@@ -29,16 +29,8 @@ hrdatabase_teammanagement: team_id (INT), employee_id (INT), department (VARCHAR
     """
 
     # (A) prompt 구성
-    prompt = f"""Below is a concise summary of the database schema: {schema_text}
+    prompt = f"""Below is a concise summary of the database schema: {schema_text} Important: The 'is_absent' column exists only in the hrdatabase_attendancerecords table. Here are some example Q-SQL pairs: 1) Question: 전체 직원 목록과 직급, 이메일을 보여줘. SQL: SELECT employee_name, rank, email FROM hrdatabase_employee; 2) Question: 3개월 연속으로 결근이 발생한 직원은? SQL: WITH MonthlyAbsence AS (SELECT employee_id, DATE_FORMAT(work_date, '%Y-%m') AS month_yyyy_mm, SUM(CASE WHEN is_absent = TRUE THEN 1 ELSE 0 END) AS absence_count FROM hrdatabase_attendancerecords GROUP BY employee_id, DATE_FORMAT(work_date, '%Y-%m')) SELECT M1.employee_id FROM MonthlyAbsence M1 JOIN MonthlyAbsence M2 ON M1.employee_id = M2.employee_id AND DATE_ADD(STR_TO_DATE(M1.month_yyyy_mm, '%Y-%m'), INTERVAL -1 MONTH) = STR_TO_DATE(M2.month_yyyy_mm, '%Y-%m') JOIN MonthlyAbsence M3 ON M1.employee_id = M3.employee_id AND DATE_ADD(STR_TO_DATE(M1.month_yyyy_mm, '%Y-%m'), INTERVAL -2 MONTH) = STR_TO_DATE(M3.month_yyyy_mm, '%Y-%m') WHERE M1.absence_count > 0 AND M2.absence_count > 0 AND M3.absence_count > 0; 3) Question: 입사일이 5년 이상 된 직원 중, 복지 혜택을 전혀 이용하지 않는 직원은? SQL: SELECT E.employee_name, E.hire_date FROM hrdatabase_employee E JOIN hrdatabase_welfarebenefitmanagement W ON E.employee_id = W.employee_id WHERE TIMESTAMPDIFF(YEAR, E.hire_date, CURDATE()) >= 5 AND W.childcare_used = FALSE AND W.company_housing = FALSE; 4) Question: 연차가 남아있지만 결근한 직원들 보여줘. SQL: SELECT E.employee_name, A.remaining_annual_leave, R.work_date, R.is_absent FROM hrdatabase_employee E JOIN hrdatabase_attendancemanagement A ON E.employee_id = A.employee_id JOIN hrdatabase_attendancerecords R ON E.employee_id = R.employee_id WHERE A.remaining_annual_leave > 0 AND R.is_absent = TRUE; 5) Question: 자녀 나이가 7살인 경우 내년에 8살이 되므로 보육 혜택(또는 유아 대상 지원)이 종료될 직원 목록을 미리 알려줘. SQL: SELECT E.employee_name, E.child_age, W.childcare_used FROM hrdatabase_employee E JOIN hrdatabase_welfarebenefitmanagement W ON E.employee_id = W.employee_id WHERE E.child_age = 7 AND W.childcare_used = TRUE; IMPORTANT: UNDER NO CIRCUMSTANCES SHOULD YOU USE ROW_NUMBER() OR PARTITION. ALWAYS PREFER SIMPLE JOIN AND WHERE CONDITIONS. NO EXCEPTIONS. Now, You should convert the following user question into a SQL query. ### Question: {user_message} ### MYSQL:""".strip()
 
-IMPORTANT: UNDER NO CIRCUMSTANCES SHOULD YOU USE ROW_NUMBER() OR PARTITION. ALWAYS PREFER SIMPLE JOIN AND WHERE CONDITIONS. NO EXCEPTIONS.
-
-Now, You should convert the following user question into a SQL query.
-
-### Question:
-{user_message}
-
-### MYSQL:""".strip()
 
     # (B) 모델 호출 (ollama)
     try:
