@@ -122,7 +122,7 @@ class hrdatabase_attendancerecord(models.Model):
 
 
 class hrdatabase_teammanagement(models.Model):
-    team_id = models.CharField(max_length=50, primary_key=True)
+    team_id = models.CharField(max_length=50) # primary_key=True
     employee_id = models.OneToOneField(hrdatabase_employee, on_delete=models.CASCADE, db_column='employee_id')
     department = models.CharField(max_length=50, null=True, blank=True)
     team_leader = models.BooleanField(default=False)
