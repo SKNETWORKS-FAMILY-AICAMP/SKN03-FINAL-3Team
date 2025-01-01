@@ -3,7 +3,8 @@ import logging
 
 from agent.services.agent_service import process_user_message
 from agent.services.role_service import get_user_role, get_access_level
-from agent.services.db_service import save_conversation
+
+# from agent.services.db_service import save_conversation
 
 logger = logging.getLogger("agent")
 
@@ -54,19 +55,16 @@ def handle_slack_event(user_message, user_id, channel_id, team_id_str=None):
         logger.debug("[handle_slack_event] final_response=%s", final_response)
 
         # 4) 질문/답변 로그를 DB에 저장
-        conversation_obj = save_conversation(
-            question=user_message,
-            answer=final_response,
-            team_id_str=team_id_str,
-            keyword_data={
-                "channel_id": channel_id,
-                "access_level": access_level
-            }
-        )
-        logger.info(
-            "[handle_slack_event] Saved conversation_id=%s",
-            conversation_obj.conversation_id
-        )
+        # conversation_obj = save_conversation(
+        #     question=user_message,
+        #     answer=final_response,
+        #     team_id_str=team_id_str,
+        #     keyword_data={"channel_id": channel_id, "access_level": access_level},
+        # )
+        # logger.info(
+        #     "[handle_slack_event] Saved conversation_id=%s",
+        #     conversation_obj.conversation_id,
+        # )
 
         return final_response
 
