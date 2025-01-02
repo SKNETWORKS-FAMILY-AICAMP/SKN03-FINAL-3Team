@@ -269,6 +269,9 @@
             // 팝업 내용
             popup.querySelector('div').innerHTML = `
               <h3>${info.event.title}</h3>
+              <div><strong>[시간]</strong> ${info.event.start.toLocaleString()} ~ ${info.event.end.toLocaleString()}</div>
+              <div><strong>[장소]</strong> ${info.event.extendedProps.location || '장소 정보 없음'}</div>
+              <div><strong>[설명]</strong> ${info.event.extendedProps.description || '설명 없음'}</div>
               <div>${info.event.extendedProps.description || ''}</div>
             `;
     

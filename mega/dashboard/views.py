@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from datetime import datetime, timedelta, date
 import calendar
-from config.settings import GOOGLE_CALENDAR_API_KEY, GOOGLE_CALENDAR_ID
+from config.settings import GOOGLE_CALENDAR_API_KEY, GOOGLE_CALENDAR_ID, MOCK_TODAY
 
 from .models import (
     hrdatabase_employee,
@@ -107,7 +107,8 @@ def board_common(request, dept_slug):
     except:
         wpage = 0
 
-    today = date.today()
+    today = MOCK_TODAY
+    #today = date.today()
     this_week_monday = get_monday(today)
     this_week_sunday = this_week_monday + timedelta(days=6)
 

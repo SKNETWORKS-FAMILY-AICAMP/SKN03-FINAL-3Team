@@ -43,6 +43,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# settings.py
+from datetime import date
+MOCK_TODAY = date(2024, 12, 29)  # 원하는 날짜로 지정
+
 
 # Application definition
 
