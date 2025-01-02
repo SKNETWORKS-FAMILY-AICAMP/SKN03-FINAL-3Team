@@ -30,7 +30,6 @@ Criteria:
      - "그동안 결근 얼마나 했지?"
      - "내 남은 연차가 며칠이야?"
      - "인사팀 인원 정보 보여줘" (사원 목록/상세)
-     - "급여명세서 좀 볼 수 있어?"
 
 2) NO_DB
    - The question can be answered without retrieving personal/confidential data from a database.
@@ -38,7 +37,6 @@ Criteria:
      - General HR policy, company rules, or processes (e.g. “연차 사용 절차,” “학자금 지원 신청 기한” 등)
      - Casual chat, general FAQs, or non-sensitive information that does not involve any individual's records.
 
-Examples:
 Q: "사내 식당 메뉴가 궁금해."
 A: "NO_DB"
 
@@ -62,20 +60,33 @@ A: "NO_DB"
 Q: "학자금 지원을 받으려면 어떤 서류가 필요한가요?"
 A: "NO_DB"
 
+Q: "아내가 출산하는데 몇 일 쉴 수 있어?"
+A: "NO_DB"
+
+Q: "배우자 출산으로 인해 특별휴가를 얼마나 받을 수 있어?"
+A: "NO_DB"
+
+Q: "창립기념일이 언제야?"
+A: "NO_DB"
+
+Q: "신입사원인데 연차언제부터 사용할 수 있나요?"
+A: "NO_DB"
+
+
 Finally, if the request is not explicitly about personal or sensitive internal data,
 default to "NO_DB".
 """
 
     # 3) 사용자(User) 메시지
-    user_prompt = f"USER:\n{user_message}\n"
+    user_prompt = f"Q:\n{user_message}\n"
 
     # 최종 프롬프트: system → assistant → user 순서로 합침
-    final_prompt = f"{system_prompt}\n\n{assistant_prompt}\n\n{user_prompt}"
+    final_prompt = f"{system_prompt}\n\n{assistant_prompt}\n\n{user_prompt} A:"
 
     try:
         # Ollama로 분류 요청
         response_text = query_ollama_classifier(
-            prompt=final_prompt, temperature=0.0, max_tokens=50
+            prompt=final_prompt, temperature=0.2, max_tokens=50
         )
         logger.debug(f"[classify_db_need] raw_response = {response_text}")
 

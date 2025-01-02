@@ -9,7 +9,7 @@ logger = logging.getLogger("agent")
 # =============================================================================
 # 1) Ollama 설정: 분류 모델만 사용
 # =============================================================================
-OLLAMA_CLASSIFIER_URL = "https://0ff3-34-124-178-32.ngrok-free.app/api/generate"
+OLLAMA_CLASSIFIER_URL = "https://bf69-34-44-68-195.ngrok-free.app/api/generate"
 CLASSIFIER_MODEL_NAME = "llama3.2:latest"
 
 # =============================================================================
@@ -19,11 +19,11 @@ CLASSIFIER_MODEL_NAME = "llama3.2:latest"
 # =============================================================================
 
 # Text2SQL
-VLLM_TEXT2SQL_BASE_URL = "https://d693-34-124-196-223.ngrok-free.app"
+VLLM_TEXT2SQL_BASE_URL = "https://1f8c-34-171-41-13.ngrok-free.app"
 TEXT2SQL_MODEL_NAME = "smoh17/SOLAR-KO-10.7B-text2sql-finetune-HRdata"
 
 # Agent
-VLLM_AGENT_BASE_URL = "https://5e4b-35-197-136-227.ngrok-free.app"
+VLLM_AGENT_BASE_URL = "https://a793-35-247-128-212.ngrok-free.app"
 AGENT_MODEL_NAME = "smoh17/aya-expanse-8b-finetune"
 
 
