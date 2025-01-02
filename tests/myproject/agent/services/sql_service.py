@@ -33,57 +33,54 @@ ER_NO_SUCH_TABLE = 1146  # Table doesn't exist
 
 def restrict_sql_query_by_access(
     sql_query: str, user_info: Dict[str, Any], access_level: str
-) -> str:
+) -> Tuple[str, str]:
     """
-    1) 권한별 안내 문구 출력(or logger 사용)
-    2) 필요 시 WHERE 절 추가
-    3) 권한이 없는 경우 ""(빈 문자열) 리턴 (접근 거부)
+    1) 권한별 안내 메시지(slack_message)를 생성
+    2) 필요 시 WHERE 절 추가 후 최종 SQL 리턴
+    3) 권한이 없는 경우 -> final_sql = "" (빈 문자열)
+    """
 
-    ※ 'DEPARTMENT_ACCESS' 일 때, hrdatabase_employee 테이블을
-    hrdatabase_teammanagement 와 JOIN 해서, t.department=? 조건을 거는 예시.
-    """
+    slack_message = ""
+    final_sql = sql_query  # 기본값 (ALL_ACCESS 등에서 그대로 씀)
+
     if access_level == "ALL_ACCESS":
-        print("모든 정보에 접근 가능합니다. (WHERE 조건 없음)")
-        return sql_query
+        slack_message = "모든 정보에 접근 가능합니다. (WHERE 조건 없음)"
+        final_sql = sql_query
 
     elif access_level == "DEPARTMENT_ACCESS":
-        print("같은 부서 정보에 한해 접근 가능합니다.")
+        slack_message = "같은 부서 정보에 한해 접근 가능합니다."
         department_name = user_info.get("department_name")
-
-        # (A) 만약 기존에 FROM hrdatabase_employee가 있으면 -> JOIN 구문으로 치환
-        #     naive(단순) 치환: "FROM hrdatabase_employee" →
-        #        "FROM hrdatabase_employee e JOIN hrdatabase_teammanagement t ON e.employee_id = t.employee_id"
         joined_query = sql_query.replace(
             "FROM hrdatabase_employee",
             "FROM hrdatabase_employee e JOIN hrdatabase_teammanagement t ON e.employee_id = t.employee_id",
         )
-
-        # (B) WHERE 절은 "t.department='...'"
-        return append_where_condition_sqlparse(
+        final_sql = append_where_condition_sqlparse(
             joined_query, f"t.department='{department_name}'"
         )
 
     elif access_level == "TEAM_ACCESS":
-        print("같은 팀 정보에 한해 접근 가능합니다.")
+        slack_message = "같은 팀 정보에 한해 접근 가능합니다."
         team_name = user_info.get("team_name")
-
-        # 팀 정보도 teammanagement에 있다고 가정해,
-        # hrdatabase_employee → JOIN hrdatabase_teammanagement
         joined_query = sql_query.replace(
             "FROM hrdatabase_employee",
             "FROM hrdatabase_employee e JOIN hrdatabase_teammanagement t ON e.employee_id = t.employee_id",
         )
-
-        return append_where_condition_sqlparse(joined_query, f"t.team_id='{team_name}'")
+        final_sql = append_where_condition_sqlparse(
+            joined_query, f"t.team_id='{team_name}'"
+        )
 
     elif access_level == "SELF_ONLY":
-        print("본인 정보만 접근 가능합니다.")
+        slack_message = "본인 정보만 접근 가능합니다."
         employee_id = user_info.get("employee_id", 0)
-        return append_where_condition_sqlparse(sql_query, f"employee_id={employee_id}")
+        final_sql = append_where_condition_sqlparse(
+            sql_query, f"employee_id={employee_id}"
+        )
 
     else:
-        print("접근 권한이 없습니다.")
-        return ""
+        slack_message = "접근 권한이 없습니다."
+        final_sql = ""
+
+    return final_sql, slack_message
 
 
 def append_where_condition_sqlparse(query: str, condition: str) -> str:

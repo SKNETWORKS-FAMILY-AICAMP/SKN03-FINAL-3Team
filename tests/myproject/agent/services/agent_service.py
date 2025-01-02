@@ -40,6 +40,8 @@ def process_user_message(
         )
         logger.debug(f"[process_user_message] user_message={user_message}")
 
+        user_message = clean_slack_mentions(user_message)
+
         # (Step 1) DB 필요 여부 분류
         db_need_result = classify_db_need(user_message)  # "NEED_DB" or "NO_DB"
         logger.debug(f"db_need_result={db_need_result}")
@@ -54,7 +56,9 @@ def process_user_message(
         logger.debug(f"raw sql_query={sql_query}")
 
         # (Step 3-B) 권한별 WHERE 제한
-        final_sql = restrict_sql_query_by_access(sql_query, user_info, access_level)
+        final_sql, slack_msg = restrict_sql_query_by_access(
+            sql_query, user_info, access_level
+        )
         if not final_sql:
             return "해당 쿼리에 접근할 권한이 없습니다."
 
@@ -65,7 +69,7 @@ def process_user_message(
         connection_params = get_connection_params(db_alias="default")
 
         # DB 스키마(테이블/컬럼) 정보 로드
-        db_tables, db_columns = load_db_schema(connection_params, "hrdatabase")
+        db_tables, db_columns = load_db_schema(connection_params, "megadatabase")
 
         # 자동 수정 기능까지 포함된 실행
         run_result = run_sql_with_auto_fix(
@@ -75,10 +79,15 @@ def process_user_message(
             db_columns,
             max_retries=2,  # 1~2회 정도 권장
         )
-        return run_result
+        return f"{slack_msg}\n\n쿼리 실행 결과:\n{run_result}"
 
     except Exception as e:
         logger.error(
             "[process_user_message] Unexpected exception: %s", e, exc_info=True
         )
         return "죄송합니다, 내부 오류가 발생했습니다."
+
+
+def clean_slack_mentions(user_message: str) -> str:
+    # <@UXXXXXXX> 형태를 전부 제거
+    return re.sub(r"<@[^>]+>", "", user_message).strip()

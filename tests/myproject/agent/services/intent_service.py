@@ -5,6 +5,7 @@ from agent.services.ollama_service import query_ollama_classifier
 
 logger = logging.getLogger("agent")
 
+
 def classify_db_need(user_message: str) -> Literal["NEED_DB", "NO_DB"]:
     """
     Ollama를 이용해, user_message가 DB 조회가 필요한지(NEED_DB),
@@ -58,6 +59,9 @@ Q: "학자금 지원 신청의 기한이 언제인지 알고 싶습니다."
 A: "NO_DB"
 (Explanation: This is about company policy or a general process, not personal data.)
 
+Q: "학자금 지원을 받으려면 어떤 서류가 필요한가요?"
+A: "NO_DB"
+
 Finally, if the request is not explicitly about personal or sensitive internal data,
 default to "NO_DB".
 """
@@ -71,9 +75,7 @@ default to "NO_DB".
     try:
         # Ollama로 분류 요청
         response_text = query_ollama_classifier(
-            prompt=final_prompt,
-            temperature=0.0,
-            max_tokens=50
+            prompt=final_prompt, temperature=0.0, max_tokens=50
         )
         logger.debug(f"[classify_db_need] raw_response = {response_text}")
 
